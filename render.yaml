@@ -27,9 +27,9 @@ services:
     region: frankfurt
     buildCommand: |
       cd frontend &&
+      npm cache clean --force &&
+      rm -rf node_modules .next &&
       npm install &&
-      npm install -D tailwindcss@latest postcss@latest autoprefixer@latest &&
-      npx tailwindcss init -p &&
       npm run build
     startCommand: cd frontend && npm start
     envVars:
