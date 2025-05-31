@@ -4,7 +4,7 @@ import ImageUpload from '@/components/ImageUpload';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function CreatePost() {
   const [title, setTitle] = useState('');
@@ -12,9 +12,14 @@ export default function CreatePost() {
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [mounted, setMounted] = useState(false);
   
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +35,7 @@ export default function CreatePost() {
       }
 
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${process.env.API_URL}/api/blogs`, formData, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -45,6 +50,10 @@ export default function CreatePost() {
       setLoading(false);
     }
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     router.push('/login');
