@@ -27,7 +27,7 @@ interface AuthContextType {
   logout: () => void;
   loading: boolean;
   error: string | null;
-  savedPosts: Post[];
+  savedPosts: string[];
   toggleSavePost: (postId: string) => Promise<void>;
 }
 
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [savedPosts, setSavedPosts] = useState<Post[]>([]);
+  const [savedPosts, setSavedPosts] = useState<string[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       });
 
-      setSavedPosts(response.data);
+      setSavedPosts(response.data.map((post: Post) => post.id));
     } catch (error) {
       console.error('Failed to fetch saved posts:', error);
     }
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       );
 
-      setSavedPosts(response.data);
+      setSavedPosts(response.data.map((post: Post) => post.id));
     } catch (error) {
       console.error('Failed to toggle save post:', error);
     }
