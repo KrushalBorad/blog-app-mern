@@ -4,7 +4,7 @@ services:
     env: node
     region: singapore
     plan: free
-    buildCommand: cd backend && npm install
+    buildCommand: npm install && cd backend && npm install
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
@@ -23,7 +23,7 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
-    healthCheckPath: /api/health
+    healthCheckPath: /health
 
   - type: web
     name: blog-frontend
@@ -39,7 +39,7 @@ services:
         value: https://blog-app-backend-qy4q.onrender.com
       - key: API_URL
         value: https://blog-app-backend-qy4q.onrender.com
-    healthCheckPath: /healthz
+    healthCheckPath: /health
     buildFilter:
       paths:
         - frontend/**/*.* 
