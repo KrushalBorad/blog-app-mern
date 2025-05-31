@@ -22,7 +22,7 @@ services:
     env: node
     region: singapore
     plan: free
-    buildCommand: cd frontend && npm install --production=false && npm run build
+    buildCommand: cd frontend && npm install && npm install autoprefixer@10.4.17 postcss@8.4.35 --save && npm run build
     startCommand: cd frontend && npm start
     envVars:
       - key: NODE_ENV
