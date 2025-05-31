@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await axios.get(`${process.env.API_URL}/api/posts/saved`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/posts/saved`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!token) return;
 
       const response = await axios.post(
-        `${process.env.API_URL}/api/posts/${postId}/toggle-save`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/posts/${postId}/toggle-save`,
         {},
         {
           headers: {
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const response = await axios.get(`${process.env.API_URL}/api/users/me`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -113,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setError(null);
-      const response = await axios.post(`${process.env.API_URL}/api/users/login`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/users/login`, {
         email,
         password
       });
@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (name: string, email: string, password: string) => {
     try {
       setError(null);
-      const response = await axios.post(`${process.env.API_URL}/api/users/register`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/users/register`, {
         name,
         email,
         password
