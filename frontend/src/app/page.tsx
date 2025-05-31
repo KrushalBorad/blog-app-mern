@@ -1,7 +1,6 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -284,16 +283,14 @@ export default function Home() {
                 className="bg-gray-900/50 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300 flex flex-col border border-purple-900/30"
               >
                 <div className="relative h-48 w-full">
-                  <Image
+                  <img
                     src={getPostImage(post.title, post.imageUrl)}
                     alt={post.title}
-                    fill
-                    className="object-cover"
+                    className="object-cover w-full h-full"
                     onError={(e) => {
                       const img = e.target as HTMLImageElement;
                       img.src = `https://placehold.co/800x600/2a2a2a/ffffff.jpg?text=Blog+Post`;
                     }}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 right-4">

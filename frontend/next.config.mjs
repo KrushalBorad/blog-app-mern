@@ -2,7 +2,7 @@
 const nextConfig = {
   output: 'standalone',
   images: {
-    domains: ['blog-app-backend-qy4q.onrender.com', 'placehold.co'],
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
