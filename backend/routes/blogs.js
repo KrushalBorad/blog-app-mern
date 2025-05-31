@@ -8,6 +8,20 @@ const path = require('path');
 // Create a new blog post with image upload
 router.post('/', auth, upload.single('image'), async (req, res) => {
   try {
+    console.log('Create post request:', {
+      body: req.body,
+      file: req.file,
+      user: req.user
+    });
+
+    // Validate required fields
+    if (!req.body.title || !req.body.content) {
+      console.log('Missing required fields:', { title: !!req.body.title, content: !!req.body.content });
+      return res.status(400).json({ 
+        message: 'Title and content are required' 
+      });
+    }
+
     let imageUrl = '/images/default-blog.jpg'; // Default image
     
     if (req.file) {
@@ -24,12 +38,26 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
       author: req.user.id
     });
 
+    console.log('Creating blog post:', blog);
+
     const savedBlog = await blog.save();
     console.log('Blog saved successfully:', savedBlog);
-    res.status(201).json(savedBlog);
+
+    // Populate author details before sending response
+    const populatedBlog = await Blog.findById(savedBlog._id).populate('author', 'name email');
+    res.status(201).json(populatedBlog);
   } catch (error) {
     console.error('Error creating blog:', error);
-    res.status(500).json({ message: 'Error creating blog post', error: error.message });
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: 'Validation error', 
+        details: error.message 
+      });
+    }
+    res.status(500).json({ 
+      message: 'Error creating blog post', 
+      error: error.message 
+    });
   }
 });
 
