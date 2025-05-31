@@ -29,7 +29,7 @@ if (!require('fs').existsSync(imagesDir)) {
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/posts', require('./routes/blogs'));
+app.use('/api/blogs', require('./routes/blogs'));
 
 // Health check route
 app.get('/health', (req, res) => {
