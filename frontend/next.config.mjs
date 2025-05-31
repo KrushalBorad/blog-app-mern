@@ -6,13 +6,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'blog-app-backend-qy4q.onrender.com',
-        pathname: '/uploads/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-        pathname: '/**',
+        hostname: '**',
       },
     ],
   },
