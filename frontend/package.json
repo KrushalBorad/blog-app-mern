@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "npm install --save-dev typescript @types/react @types/node @types/react-dom"
+    "lint": "next lint"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.1",
@@ -19,14 +18,14 @@
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.10",
     "autoprefixer": "10.4.17",
-    "postcss": "8.4.35"
-  },
-  "devDependencies": {
+    "postcss": "8.4.35",
+    "typescript": "5.3.3",
     "@types/node": "20.11.19",
     "@types/react": "18.2.55",
-    "@types/react-dom": "18.2.19",
+    "@types/react-dom": "18.2.19"
+  },
+  "devDependencies": {
     "eslint": "^8",
-    "eslint-config-next": "14.1.0",
-    "typescript": "5.3.3"
+    "eslint-config-next": "14.1.0"
   }
 } 

@@ -22,7 +22,7 @@ services:
     env: node
     region: singapore
     plan: free
-    buildCommand: cd frontend && npm install && npm install --save-dev typescript@5.3.3 @types/react@18.2.55 @types/node@20.11.19 @types/react-dom@18.2.19 && npm install autoprefixer@10.4.17 postcss@8.4.35 --save && npm run build
+    buildCommand: cd frontend && npm install && npm run build
     startCommand: cd frontend && npm start
     envVars:
       - key: NODE_ENV
