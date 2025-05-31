@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
+import axios from 'axios';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -100,31 +101,23 @@ export default function SavedPosts() {
         return;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${postId}/like`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${postId}/like`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to like post');
-      }
-
-      const data = await response.json();
-
-      // Update posts state to reflect the new like
-      setSavedPostsData(savedPostsData.map(post => {
-        if (post._id === postId) {
-          return {
-            ...post,
-            likes: data.likes || []
-          };
-        }
-        return post;
-      }));
+      setSavedPostsData(prev => 
+        prev.map(post => 
+          post._id === postId 
+            ? { ...post, likes: response.data.likes || [] }
+            : post
+        )
+      );
     } catch (err) {
       console.error('Error liking post:', err);
       setError(err instanceof Error ? err.message : 'Failed to like post');
@@ -134,7 +127,7 @@ export default function SavedPosts() {
   const isPostLiked = (post: BlogPost) => {
     if (!user?.id || !post.likes) return false;
     const userIdStr = user.id.toString();
-    return post.likes.some(id => id?.toString() === userIdStr);
+    return post.likes.some(id => id && id.toString() === userIdStr);
   };
 
   if (loading) {
