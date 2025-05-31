@@ -82,7 +82,7 @@ export default function BlogPost({ params }: { params: { id: string } }) {
   const isPostLiked = (blog: BlogPost) => {
     if (!user?.id || !blog.likes) return false;
     const userIdStr = user.id.toString();
-    return blog.likes.some(id => id?.toString() === userIdStr);
+    return blog.likes.some(id => id && id.toString() === userIdStr);
   };
 
   if (!blog) {
@@ -92,6 +92,8 @@ export default function BlogPost({ params }: { params: { id: string } }) {
       </div>
     );
   }
+
+  const likeCount = blog.likes?.filter(id => id != null).length || 0;
 
   return (
     <div className="min-h-screen pt-20 pb-10">
@@ -140,7 +142,7 @@ export default function BlogPost({ params }: { params: { id: string } }) {
               >
                 <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
               </svg>
-              {blog.likes?.filter(id => id != null).length || 0} {blog.likes?.filter(id => id != null).length === 1 ? 'Like' : 'Likes'}
+              {likeCount} {likeCount === 1 ? 'Like' : 'Likes'}
             </button>
           </div>
         </article>
