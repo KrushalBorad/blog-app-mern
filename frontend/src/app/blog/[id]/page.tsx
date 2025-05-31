@@ -2,8 +2,8 @@
 
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface BlogPost {
   _id: string;
@@ -66,10 +66,13 @@ export default function BlogPost({ params }: { params: { id: string } }) {
         }
       );
 
-      setBlog(prev => ({
-        ...prev,
-        likes: response.data.likes || []
-      }));
+      setBlog(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          likes: response.data.likes || []
+        };
+      });
     } catch (err) {
       console.error('Error liking post:', err);
       setError(err instanceof Error ? err.message : 'Failed to like post');
