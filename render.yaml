@@ -28,7 +28,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: API_URL
-        value: https://blog-backend.onrender.com
+        value: https://blog-app-backend-qy4q.onrender.com
     healthCheckPath: /api/health
     buildFilter:
       paths:

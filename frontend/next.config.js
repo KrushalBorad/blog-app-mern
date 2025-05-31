@@ -1,20 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   env: {
-    API_URL: process.env.API_URL || 'http://localhost:8080',
+    API_URL: process.env.API_URL || 'https://blog-app-backend-qy4q.onrender.com',
   },
   images: {
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '5005',
+        protocol: 'https',
+        hostname: 'blog-app-backend-qy4q.onrender.com',
         pathname: '/uploads/**',
       },
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '5005',
+        protocol: 'https',
+        hostname: 'blog-app-backend-qy4q.onrender.com',
         pathname: '/images/**',
       },
       {
@@ -26,21 +24,21 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    domains: ['res.cloudinary.com', 'localhost', 'blog-backend.onrender.com'],
+    domains: ['res.cloudinary.com', 'blog-app-backend-qy4q.onrender.com'],
   },
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:5005/api/:path*'
+        destination: `${process.env.API_URL || 'https://blog-app-backend-qy4q.onrender.com'}/api/:path*`
       },
       {
         source: '/uploads/:path*',
-        destination: 'http://localhost:5005/uploads/:path*'
+        destination: `${process.env.API_URL || 'https://blog-app-backend-qy4q.onrender.com'}/uploads/:path*`
       },
       {
         source: '/images/:path*',
-        destination: 'http://localhost:5005/images/:path*'
+        destination: `${process.env.API_URL || 'https://blog-app-backend-qy4q.onrender.com'}/images/:path*`
       }
     ]
   },
