@@ -15,11 +15,36 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
+    // Validate inputs
+    if (name.length < 2) {
+      setError('Name must be at least 2 characters long');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    if (!email.match(/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     try {
       await register(name, email, password);
       router.push('/');
-    } catch (err) {
-      setError('Registration failed. Please try again.');
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('Registration failed. Please try again.');
+      }
     }
   };
 
@@ -73,6 +98,7 @@ export default function RegisterPage() {
                   className="pl-10 focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-lg"
                   placeholder="John Doe"
                   required
+                  minLength={2}
                 />
               </div>
             </div>
@@ -118,6 +144,7 @@ export default function RegisterPage() {
                   className="pl-10 focus:ring-purple-500 focus:border-purple-500 block w-full sm:text-sm border-gray-300 rounded-lg"
                   placeholder="••••••••"
                   required
+                  minLength={6}
                 />
               </div>
             </div>
