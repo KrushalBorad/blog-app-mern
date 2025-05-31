@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   env: {
-    API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+    API_URL: process.env.API_URL || 'http://localhost:8080',
   },
   images: {
     remotePatterns: [
@@ -26,7 +26,7 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    domains: ['res.cloudinary.com', 'localhost'],
+    domains: ['res.cloudinary.com', 'localhost', 'blog-backend.onrender.com'],
   },
   async rewrites() {
     return [
@@ -43,7 +43,14 @@ const nextConfig = {
         destination: 'http://localhost:5005/images/:path*'
       }
     ]
-  }
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname, 'src'),
+    };
+    return config;
+  },
 }
 
 module.exports = nextConfig 
