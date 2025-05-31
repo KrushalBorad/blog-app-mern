@@ -10,6 +10,7 @@ router.post('/register', async (req, res) => {
     const { email, password, name } = req.body;
 
     if (!email || !password || !name) {
+      console.log('Registration failed: Missing required fields');
       return res.status(400).json({ 
         message: 'Please provide all required fields: email, password, and name' 
       });
@@ -35,7 +36,7 @@ router.post('/register', async (req, res) => {
     // Create token
     const token = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET || 'your_jwt_secret_key_here',
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -49,7 +50,10 @@ router.post('/register', async (req, res) => {
     });
   } catch (err) {
     console.error('Registration error:', err);
-    res.status(500).json({ message: err.message });
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ message: err.message });
+    }
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -61,6 +65,7 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
+      console.log('Login failed: Missing credentials');
       return res.status(400).json({ 
         message: 'Please provide both email and password' 
       });
@@ -85,7 +90,7 @@ router.post('/login', async (req, res) => {
     // Create token
     const token = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET || 'your_jwt_secret_key_here',
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -99,7 +104,7 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     console.error('Login error:', err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
