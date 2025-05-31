@@ -10,6 +10,15 @@ interface User {
   email: string;
 }
 
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  author: User;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
@@ -18,6 +27,8 @@ interface AuthContextType {
   logout: () => void;
   loading: boolean;
   error: string | null;
+  savedPosts: Post[];
+  toggleSavePost: (postId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,11 +37,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [savedPosts, setSavedPosts] = useState<Post[]>([]);
   const router = useRouter();
 
   useEffect(() => {
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchSavedPosts();
+    }
+  }, [user]);
+
+  const fetchSavedPosts = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get(`${process.env.API_URL}/api/posts/saved`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      setSavedPosts(response.data);
+    } catch (error) {
+      console.error('Failed to fetch saved posts:', error);
+    }
+  };
+
+  const toggleSavePost = async (postId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.post(
+        `${process.env.API_URL}/api/posts/${postId}/toggle-save`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      setSavedPosts(response.data);
+    } catch (error) {
+      console.error('Failed to toggle save post:', error);
+    }
+  };
 
   const checkAuth = async () => {
     try {
@@ -92,6 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    setSavedPosts([]);
     router.push('/login');
   };
 
@@ -104,7 +161,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         logout,
         loading,
-        error
+        error,
+        savedPosts,
+        toggleSavePost
       }}
     >
       {children}
