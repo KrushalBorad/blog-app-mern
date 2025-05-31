@@ -39,6 +39,8 @@ export const AuthContext = createContext<AuthContextType>({
   logout: () => {},
   savedPosts: [],
   toggleSavePost: async () => {},
+  loading: false,
+  error: null
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -181,6 +183,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         savedPosts,
         toggleSavePost,
+        loading,
+        error,
       }}
     >
       {children}
