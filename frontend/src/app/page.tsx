@@ -62,7 +62,7 @@ export default function Home() {
   const fetchPosts = async () => {
     try {
       console.log('Fetching posts...');
-      const response = await fetch('/api/posts');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`);
       console.log('Response status:', response.status);
       
       if (!response.ok) {
@@ -132,7 +132,7 @@ export default function Home() {
         token: token.substring(0, 20) + '...' // Only log part of the token for security
       });
 
-      const response = await fetch(`http://localhost:5005/api/posts/${postId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${postId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -181,7 +181,7 @@ export default function Home() {
         currentLikes: posts.find(p => p._id === postId)?.likes.map(id => id.toString())
       });
 
-      const response = await fetch(`http://localhost:5005/api/posts/${postId}/like`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${postId}/like`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

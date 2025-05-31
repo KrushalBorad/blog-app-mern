@@ -23,7 +23,7 @@ export default function BlogPost({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchBlog = async () => {
       try {
-        const response = await axios.get(`${process.env.API_URL}/api/posts/${params.id}`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${params.id}`);
         setBlog(response.data);
       } catch (error) {
         console.error('Error fetching blog:', error);

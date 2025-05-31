@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/posts/saved`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!token) return;
 
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/posts/${postId}/toggle-save`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${postId}/toggle-save`,
         {},
         {
           headers: {
@@ -92,80 +92,79 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
+        setUser(null);
         setLoading(false);
         return;
       }
 
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
       setUser(response.data);
+      setLoading(false);
     } catch (error) {
-      localStorage.removeItem('token');
-    } finally {
+      console.error('Failed to check authentication:', error);
+      setUser(null);
       setLoading(false);
     }
   };
 
   const login = async (email: string, password: string) => {
     try {
-      setError(null);
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/users/login`, {
         email,
         password
       });
 
       localStorage.setItem('token', response.data.token);
-      setUser(response.data.user);
-      router.push('/');
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to login');
-      throw error;
+      await checkAuth();
+    } catch (error) {
+      console.error('Failed to login:', error);
+      setError('Failed to login. Please try again later.');
     }
   };
 
   const register = async (name: string, email: string, password: string) => {
     try {
-      setError(null);
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/users/register`, {
         name,
         email,
         password
       });
 
       localStorage.setItem('token', response.data.token);
-      setUser(response.data.user);
-      router.push('/');
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to register');
-      throw error;
+      await checkAuth();
+    } catch (error) {
+      console.error('Failed to register:', error);
+      setError('Failed to register. Please try again later.');
     }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    setLoading(true);
+    setError(null);
     setSavedPosts([]);
-    router.push('/login');
+  };
+
+  const value: AuthContextType = {
+    user,
+    isAuthenticated: !!user,
+    login,
+    register,
+    logout,
+    loading,
+    error,
+    savedPosts,
+    toggleSavePost
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        login,
-        register,
-        logout,
-        loading,
-        error,
-        savedPosts,
-        toggleSavePost
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
@@ -177,4 +176,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}
