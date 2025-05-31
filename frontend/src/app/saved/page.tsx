@@ -61,7 +61,7 @@ export default function SavedPosts() {
       try {
         const posts = await Promise.all(
           savedPosts.map(async (id) => {
-            const response = await fetch(`/api/blogs/${id}`);
+            const response = await fetch(`/api/posts/${id}`);
             if (!response.ok) return null;
             return response.json();
           })
@@ -92,7 +92,7 @@ export default function SavedPosts() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5005/api/blogs/${postId}/like`, {
+      const response = await fetch(`http://localhost:5005/api/posts/${postId}/like`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

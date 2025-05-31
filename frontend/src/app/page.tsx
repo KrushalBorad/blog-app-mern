@@ -62,7 +62,7 @@ export default function Home() {
   const fetchPosts = async () => {
     try {
       console.log('Fetching posts...');
-      const response = await fetch('/api/blogs');
+      const response = await fetch('/api/posts');
       console.log('Response status:', response.status);
       
       if (!response.ok) {
@@ -132,7 +132,7 @@ export default function Home() {
         token: token.substring(0, 20) + '...' // Only log part of the token for security
       });
 
-      const response = await fetch(`http://localhost:5005/api/blogs/${postId}`, {
+      const response = await fetch(`http://localhost:5005/api/posts/${postId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -181,7 +181,7 @@ export default function Home() {
         currentLikes: posts.find(p => p._id === postId)?.likes.map(id => id.toString())
       });
 
-      const response = await fetch(`http://localhost:5005/api/blogs/${postId}/like`, {
+      const response = await fetch(`http://localhost:5005/api/posts/${postId}/like`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
