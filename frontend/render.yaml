@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: blog-app-frontend
+    env: node
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://blog-app-backend-qy4q.onrender.com
+    healthCheckPath: /
+    autoDeploy: true 
