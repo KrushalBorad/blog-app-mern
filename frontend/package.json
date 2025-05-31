@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "npm install --save-dev typescript @types/react @types/node @types/react-dom"
+    "postinstall": "npm install --save-dev typescript @types/react @types/node @types/react-dom autoprefixer postcss tailwindcss"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.1",
@@ -17,16 +17,16 @@
     "react-dom": "^18",
     "tailwindcss": "^3.3.0",
     "@tailwindcss/forms": "^0.5.7",
-    "@tailwindcss/typography": "^0.5.10"
+    "@tailwindcss/typography": "^0.5.10",
+    "autoprefixer": "^10.0.1",
+    "postcss": "^8"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
-    "postcss": "^8",
     "typescript": "^5"
   }
 } 
