@@ -1,41 +1,39 @@
 services:
   - type: web
-    name: blog-app-backend
+    name: blog-backend
     env: node
-    region: frankfurt
-    buildCommand: |
-      cd backend &&
-      mkdir -p public/uploads &&
-      cp -r models routes middleware server.js package.json package-lock.json ./ &&
-      npm install
-    startCommand: cd backend && node server.js
+    region: singapore
+    plan: free
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET
-        sync: false
-      - key: FRONTEND_URL
-        sync: false
-    runtime: node
-    nodeVersion: 18
+        generateValue: true
+      - key: PORT
+        value: 8080
+    healthCheckPath: /api/health
 
   - type: web
-    name: blog-app-frontend
+    name: blog-frontend
     env: node
-    region: frankfurt
-    buildCommand: |
-      cd frontend &&
-      npm cache clean --force &&
-      rm -rf node_modules .next &&
-      npm install &&
-      npm run build
+    region: singapore
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
     startCommand: cd frontend && npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: NEXT_PUBLIC_API_URL
-        sync: false
-    runtime: node
-    nodeVersion: 18 
+      - key: API_URL
+        value: https://blog-backend.onrender.com
+    healthCheckPath: /api/health
+    buildFilter:
+      paths:
+        - frontend/**/*.*
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html 
