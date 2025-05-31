@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+  },
   images: {
     remotePatterns: [
       {
@@ -23,6 +26,7 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    domains: ['res.cloudinary.com', 'localhost'],
   },
   async rewrites() {
     return [
