@@ -45,6 +45,46 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get saved posts for the current user
+router.get('/saved', auth, async (req, res) => {
+  try {
+    const blogs = await Blog.find({ savedBy: req.user.id })
+      .populate('author', 'name email')
+      .sort({ createdAt: -1 });
+    res.json(blogs);
+  } catch (error) {
+    console.error('Error fetching saved posts:', error);
+    res.status(500).json({ message: 'Error fetching saved posts', error: error.message });
+  }
+});
+
+// Toggle save post
+router.post('/:id/toggle-save', auth, async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog not found' });
+    }
+
+    const userId = req.user.id;
+    const savedIndex = blog.savedBy.indexOf(userId);
+
+    // If user already saved, remove save
+    if (savedIndex !== -1) {
+      blog.savedBy.splice(savedIndex, 1);
+    } else {
+      // Add save
+      blog.savedBy.push(userId);
+    }
+
+    await blog.save();
+    res.json(blog);
+  } catch (error) {
+    console.error('Error in toggle save route:', error);
+    res.status(500).json({ message: 'Error updating saved status', error: error.message });
+  }
+});
+
 // Get a single blog post
 router.get('/:id', async (req, res) => {
   try {
