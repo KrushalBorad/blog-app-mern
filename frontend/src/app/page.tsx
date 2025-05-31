@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
+import axios from 'axios';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -182,37 +183,23 @@ export default function Home() {
         return;
       }
 
-      console.log('Liking/Unliking post:', {
-        postId,
-        userId: userIdStr,
-        currentLikes: posts.find(p => p._id === postId)?.likes?.map(id => id?.toString())
-      });
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${postId}/like`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${postId}/like`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to like post');
-      }
-
-      // Update posts state to reflect the new like status
-      setPosts(posts.map(post => {
-        if (post._id === postId) {
-          return {
-            ...post,
-            likes: data.likes || []
-          };
-        }
-        return post;
-      }));
-      setError(''); // Clear any existing errors
+      setPosts(prev => 
+        prev.map(post => 
+          post._id === postId 
+            ? { ...post, likes: response.data.likes || [] }
+            : post
+        )
+      );
     } catch (err) {
       console.error('Error liking post:', err);
       setError(err instanceof Error ? err.message : 'Failed to like post');
@@ -222,7 +209,7 @@ export default function Home() {
   const isPostLiked = (post: BlogPost) => {
     if (!user?.id || !post.likes) return false;
     const userIdStr = user.id.toString();
-    return post.likes.some(id => id?.toString() === userIdStr);
+    return post.likes.some(id => id && id.toString() === userIdStr);
   };
 
   if (loading) {
