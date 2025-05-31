@@ -3,6 +3,7 @@
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface BlogPost {
   _id: string;
@@ -14,11 +15,14 @@ interface BlogPost {
     email: string;
   };
   createdAt: string;
+  likes?: string[];
 }
 
 export default function BlogPost({ params }: { params: { id: string } }) {
   const [blog, setBlog] = useState<BlogPost | null>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBlog = async () => {
@@ -32,6 +36,51 @@ export default function BlogPost({ params }: { params: { id: string } }) {
 
     fetchBlog();
   }, [params.id]);
+
+  const handleLike = async () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Authentication token not found');
+        return;
+      }
+
+      const userIdStr = user.id?.toString();
+      if (!userIdStr) {
+        setError('Invalid user ID');
+        return;
+      }
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${params.id}/like`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setBlog(prev => ({
+        ...prev,
+        likes: response.data.likes || []
+      }));
+    } catch (err) {
+      console.error('Error liking post:', err);
+      setError(err instanceof Error ? err.message : 'Failed to like post');
+    }
+  };
+
+  const isPostLiked = (blog: BlogPost) => {
+    if (!user?.id || !blog.likes) return false;
+    const userIdStr = user.id.toString();
+    return blog.likes.some(id => id?.toString() === userIdStr);
+  };
 
   if (!blog) {
     return (
@@ -70,6 +119,26 @@ export default function BlogPost({ params }: { params: { id: string } }) {
                 </p>
               ))}
             </div>
+            <button
+              onClick={handleLike}
+              className={`flex items-center ${
+                isPostLiked(blog)
+                  ? 'text-red-400 hover:text-red-300'
+                  : 'text-gray-400 hover:text-gray-300'
+              } transition-colors duration-300 text-sm`}
+              title={user ? 'Like/Unlike post' : 'Login to like posts'}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-1"
+                viewBox="0 0 20 20"
+                fill={isPostLiked(blog) ? 'currentColor' : 'none'}
+                stroke="currentColor"
+              >
+                <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+              </svg>
+              {blog.likes?.filter(id => id != null).length || 0} {blog.likes?.filter(id => id != null).length === 1 ? 'Like' : 'Likes'}
+            </button>
           </div>
         </article>
       </div>

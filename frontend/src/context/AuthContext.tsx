@@ -31,43 +31,114 @@ interface AuthContextType {
   toggleSavePost: (postId: string) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isAuthenticated: false,
+  login: async () => {},
+  register: async () => {},
+  logout: () => {},
+  savedPosts: [],
+  toggleSavePost: async () => {},
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [savedPosts, setSavedPosts] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [savedPosts, setSavedPosts] = useState<string[]>([]);
   const router = useRouter();
 
   useEffect(() => {
-    checkAuth();
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchUser(token);
+    } else {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      fetchSavedPosts();
-    }
-  }, [user]);
-
-  const fetchSavedPosts = async () => {
+  const fetchUser = async (token: string) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
-      setSavedPosts(response.data.map((post: Post) => post.id));
-    } catch (error) {
-      console.error('Failed to fetch saved posts:', error);
+      if (response.data) {
+        setUser(response.data);
+        fetchSavedPosts(token);
+      }
+    } catch (err) {
+      console.error('Error fetching user:', err);
+      localStorage.removeItem('token');
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const fetchSavedPosts = async (token: string) => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data) {
+        setSavedPosts(response.data.map((post: any) => post._id));
+      }
+    } catch (err) {
+      console.error('Error fetching saved posts:', err);
+      setSavedPosts([]);
+    }
+  };
+
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+        email,
+        password,
+      });
+
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      setUser(user);
+      await fetchSavedPosts(token);
+    } catch (err) {
+      console.error('Login error:', err);
+      throw err;
+    }
+  };
+
+  const register = async (name: string, email: string, password: string) => {
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
+        name,
+        email,
+        password,
+      });
+
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      setUser(user);
+      await fetchSavedPosts(token);
+    } catch (err) {
+      console.error('Registration error:', err);
+      throw err;
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    setSavedPosts([]);
+  };
+
   const toggleSavePost = async (postId: string) => {
+    if (!user) return;
+
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -77,94 +148,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         {},
         {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
-      setSavedPosts(response.data.map((post: Post) => post.id));
-    } catch (error) {
-      console.error('Failed to toggle save post:', error);
-    }
-  };
-
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setUser(null);
-        setLoading(false);
-        return;
+      if (response.data.saved) {
+        setSavedPosts(prev => [...prev, postId]);
+      } else {
+        setSavedPosts(prev => prev.filter(id => id !== postId));
       }
-
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      setUser(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error('Failed to check authentication:', error);
-      setUser(null);
-      setLoading(false);
+    } catch (err) {
+      console.error('Error toggling save post:', err);
     }
   };
 
-  const login = async (email: string, password: string) => {
-    try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
-        email,
-        password
-      });
-
-      localStorage.setItem('token', response.data.token);
-      await checkAuth();
-    } catch (error) {
-      console.error('Failed to login:', error);
-      setError('Failed to login. Please try again later.');
-    }
-  };
-
-  const register = async (name: string, email: string, password: string) => {
-    try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
-        name,
-        email,
-        password
-      });
-
-      localStorage.setItem('token', response.data.token);
-      await checkAuth();
-    } catch (error) {
-      console.error('Failed to register:', error);
-      setError('Failed to register. Please try again later.');
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    setLoading(true);
-    setError(null);
-    setSavedPosts([]);
-  };
-
-  const value: AuthContextType = {
-    user,
-    isAuthenticated: !!user,
-    login,
-    register,
-    logout,
-    loading,
-    error,
-    savedPosts,
-    toggleSavePost
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-400"></div>
+      </div>
+    );
+  }
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        login,
+        register,
+        logout,
+        savedPosts,
+        toggleSavePost,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
