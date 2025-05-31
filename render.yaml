@@ -3,7 +3,11 @@ services:
     name: blog-app-backend
     env: node
     region: frankfurt
-    buildCommand: cd backend && npm install
+    buildCommand: |
+      cd backend &&
+      mkdir -p public/uploads &&
+      cp -r models routes middleware server.js package.json package-lock.json ./ &&
+      npm install
     startCommand: cd backend && node server.js
     envVars:
       - key: NODE_ENV
@@ -22,9 +26,10 @@ services:
     env: node
     region: frankfurt
     buildCommand: |
-      cd frontend && 
+      cd frontend &&
       npm install &&
-      npm install tailwindcss postcss autoprefixer &&
+      npm install -D tailwindcss@latest postcss@latest autoprefixer@latest &&
+      npx tailwindcss init -p &&
       npm run build
     startCommand: cd frontend && npm start
     envVars:
