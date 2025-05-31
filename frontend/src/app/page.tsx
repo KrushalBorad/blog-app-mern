@@ -29,7 +29,10 @@ interface BlogResponse {
 // Function to get image based on title (fallback)
 const getPostImage = (title: string, imageUrl: string | undefined) => {
   // If there's a valid image URL from our backend
-  if (imageUrl && (imageUrl.startsWith('/uploads/') || imageUrl.startsWith('/images/'))) {
+  if (imageUrl) {
+    if (imageUrl.startsWith('/uploads/') || imageUrl.startsWith('/images/')) {
+      return `${process.env.NEXT_PUBLIC_API_URL}${imageUrl}`;
+    }
     return imageUrl;
   }
 

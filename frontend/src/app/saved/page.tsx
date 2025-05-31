@@ -22,7 +22,10 @@ interface BlogPost {
 // Function to get image based on title (fallback)
 const getPostImage = (title: string, imageUrl: string | undefined) => {
   // If there's a valid image URL from our backend
-  if (imageUrl && (imageUrl.startsWith('/uploads/') || imageUrl.startsWith('/images/'))) {
+  if (imageUrl) {
+    if (imageUrl.startsWith('/uploads/') || imageUrl.startsWith('/images/')) {
+      return `${process.env.NEXT_PUBLIC_API_URL}${imageUrl}`;
+    }
     return imageUrl;
   }
 
@@ -221,21 +224,22 @@ export default function SavedPosts() {
                       <button
                         onClick={() => handleLike(post._id)}
                         className={`flex items-center ${
-                          user && post.likes.includes(user.id)
-                            ? 'text-red-500 hover:text-red-700'
-                            : 'text-gray-500 hover:text-gray-700'
+                          user && post.likes?.some(id => id?.toString() === user.id.toString())
+                            ? 'text-red-400 hover:text-red-300'
+                            : 'text-gray-400 hover:text-gray-300'
                         } transition-colors duration-300 text-sm`}
+                        title={user ? 'Like/Unlike post' : 'Login to like posts'}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-4 w-4 mr-1"
                           viewBox="0 0 20 20"
-                          fill={user && post.likes.includes(user.id) ? 'currentColor' : 'none'}
+                          fill={user && post.likes?.some(id => id?.toString() === user.id.toString()) ? 'currentColor' : 'none'}
                           stroke="currentColor"
                         >
                           <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                         </svg>
-                        {post.likes.length} {post.likes.length === 1 ? 'Like' : 'Likes'}
+                        {post.likes?.filter(id => id != null).length || 0} {post.likes?.filter(id => id != null).length === 1 ? 'Like' : 'Likes'}
                       </button>
                       <Link
                         href={`/blog/${post._id}`}
