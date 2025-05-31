@@ -2,8 +2,8 @@
 
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface BlogPost {
   _id: string;
@@ -23,14 +23,24 @@ export default function BlogPost({ params }: { params: { id: string } }) {
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBlog = async () => {
       try {
+        setLoading(true);
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${params.id}`);
-        setBlog(response.data);
+        if (response.data) {
+          setBlog({
+            ...response.data,
+            likes: response.data.likes || []
+          });
+        }
       } catch (error) {
         console.error('Error fetching blog:', error);
+        setError('Failed to load blog post');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -85,10 +95,18 @@ export default function BlogPost({ params }: { params: { id: string } }) {
     return blog.likes.some(id => id && id.toString() === userIdStr);
   };
 
-  if (!blog) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
+
+  if (!blog) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-500">Blog post not found</div>
       </div>
     );
   }
@@ -106,6 +124,10 @@ export default function BlogPost({ params }: { params: { id: string } }) {
                 src={blog.imageUrl}
                 alt={blog.title}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  const img = e.target as HTMLImageElement;
+                  img.src = `https://placehold.co/800x600/2a2a2a/ffffff.jpg?text=${encodeURIComponent(blog.title)}`;
+                }}
               />
             </div>
           )}
@@ -114,7 +136,7 @@ export default function BlogPost({ params }: { params: { id: string } }) {
               {blog.title}
             </h1>
             <div className="flex items-center text-gray-600 mb-6">
-              <span className="mr-4">By {blog.author.name}</span>
+              <span className="mr-4">By {blog.author?.name || 'Unknown Author'}</span>
               <span>{new Date(blog.createdAt).toLocaleDateString()}</span>
             </div>
             <div className="prose prose-purple max-w-none">
