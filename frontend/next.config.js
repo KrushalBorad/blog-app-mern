@@ -29,8 +29,12 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/:path*',
-        destination: `${process.env.API_URL || 'https://blog-app-backend-qy4q.onrender.com'}/api/:path*`
+        source: '/api/blogs/:path*',
+        destination: `${process.env.API_URL || 'https://blog-app-backend-qy4q.onrender.com'}/api/blogs/:path*`
+      },
+      {
+        source: '/api/auth/:path*',
+        destination: `${process.env.API_URL || 'https://blog-app-backend-qy4q.onrender.com'}/api/auth/:path*`
       },
       {
         source: '/uploads/:path*',
