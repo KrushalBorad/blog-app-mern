@@ -289,6 +289,18 @@ router.delete('/all', auth, async (req, res) => {
     const result = await Blog.deleteMany({ author: req.user.id });
     console.log(`Deleted ${result.deletedCount} posts for user ${req.user.id}`);
     
+    // Clear any cached data
+    try {
+      const cacheDir = path.join(__dirname, '../cache');
+      if (require('fs').existsSync(cacheDir)) {
+        require('fs').rmSync(cacheDir, { recursive: true, force: true });
+        console.log('Cleared cache directory');
+      }
+    } catch (err) {
+      console.error('Error clearing cache:', err);
+      // Continue even if cache clearing fails
+    }
+    
     res.json({ 
       message: 'All posts deleted successfully',
       deletedCount: result.deletedCount

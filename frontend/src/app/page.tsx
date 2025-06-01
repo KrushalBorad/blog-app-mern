@@ -243,12 +243,21 @@ export default function Home() {
       if (!response.ok) {
         console.error('Delete all posts failed:', {
           status: response.status,
-          data: data
+          data: data,
+          userId: user.id
         });
         throw new Error(data.message || 'Failed to delete posts');
       }
 
       console.log('Successfully deleted posts:', data);
+
+      // Clear any cached data
+      try {
+        localStorage.removeItem('cachedPosts');
+        sessionStorage.removeItem('cachedPosts');
+      } catch (err) {
+        console.error('Error clearing frontend cache:', err);
+      }
 
       // Remove all posts by the current user from the local state
       setPosts(posts.filter(p => p.author?.email?.toString() !== user.id?.toString()));
