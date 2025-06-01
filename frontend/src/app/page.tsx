@@ -274,81 +274,17 @@ export default function Home() {
 
   const handleSavePost = async (postId: string) => {
     if (!user) {
-      setError('You must be logged in to save posts');
+      router.push('/login');
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('Authentication token not found');
-        return;
-      }
-
-      console.log('Sending save post request:', {
-        postId,
-        userId: user.id,
-        token: token.substring(0, 20) + '...' // Only log part of the token for security
-      });
-
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${postId}/toggle-save`,
-        {},
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      console.log('Save post response:', response.data);
-
-      // Update the saved posts in the context immediately
-      const isCurrentlySaved = savedPosts.includes(postId);
-      const isNowSaved = response.data.savedBy.includes(user.id);
-
-      // Only toggle if the state has changed
-      if (isCurrentlySaved !== isNowSaved) {
-        toggleSavePost(postId);
-      }
-
-      // Force a refresh of the saved posts list
-      const savedResponse = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      // Update the saved posts in the context with the fresh data
-      const currentSavedIds = savedResponse.data.map((post: BlogPost) => post._id);
-      
-      // Remove any saved posts that are no longer in the list
-      savedPosts.forEach((savedId: string) => {
-        if (!currentSavedIds.includes(savedId)) {
-          toggleSavePost(savedId);
-        }
-      });
-
-      // Add any new saved posts
-      currentSavedIds.forEach((savedId: string) => {
-        if (!savedPosts.includes(savedId)) {
-          toggleSavePost(savedId);
-        }
-      });
-
+      await toggleSavePost(postId);
+      // Refresh the posts list to ensure UI is in sync
+      fetchPosts();
     } catch (err) {
       console.error('Error saving post:', err);
-      if (axios.isAxiosError(err)) {
-        const errorMessage = err.response?.data?.message || err.message;
-        setError(errorMessage);
-      } else {
-        setError(err instanceof Error ? err.message : 'Failed to save post');
-      }
+      setError(err instanceof Error ? err.message : 'Failed to save post');
     }
   };
 
@@ -511,12 +447,12 @@ export default function Home() {
                           savedPosts.includes(post._id)
                             ? 'text-pink-400 hover:text-pink-300'
                             : 'text-gray-400 hover:text-gray-300'
-                        } transition-colors duration-300 text-xs sm:text-sm`}
+                        } transition-colors duration-300 text-sm`}
                         title={savedPosts.includes(post._id) ? 'Remove from saved' : 'Save post'}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-3 w-3 sm:h-4 sm:w-4 mr-1"
+                          className="h-4 w-4 mr-1"
                           viewBox="0 0 20 20"
                           fill={savedPosts.includes(post._id) ? 'currentColor' : 'none'}
                           stroke="currentColor"

@@ -34,6 +34,7 @@ const getPostImage = (title: string, imageUrl: string | undefined) => {
   return `https://placehold.co/800x600/2a2a2a/ffffff.jpg?text=${text}`;
 };
 
+// Function to generate profile color based on name
 const getProfileColor = (name: string) => {
   const colors = [
     'from-blue-500 to-purple-500',
@@ -54,41 +55,41 @@ export default function SavedPosts() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchSavedPosts = async () => {
-      if (!isAuthenticated) {
-        router.push('/login');
+  const fetchSavedPosts = async () => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Authentication token not found');
         return;
       }
 
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token');
-        if (!token) {
-          setError('Authentication token not found');
-          return;
-        }
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.data) {
-          setSavedPosts(response.data.map((post: BlogPost) => ({
-            ...post,
-            likes: post.likes || []
-          })));
-        }
-      } catch (error) {
-        console.error('Error fetching saved posts:', error);
-        setError('Failed to load saved posts');
-      } finally {
-        setLoading(false);
+      if (response.data) {
+        setSavedPosts(response.data.map((post: BlogPost) => ({
+          ...post,
+          likes: post.likes || []
+        })));
       }
-    };
+    } catch (error) {
+      console.error('Error fetching saved posts:', error);
+      setError('Failed to load saved posts');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchSavedPosts();
   }, [isAuthenticated, router]);
 
@@ -131,6 +132,22 @@ export default function SavedPosts() {
     } catch (err) {
       console.error('Error liking post:', err);
       setError(err instanceof Error ? err.message : 'Failed to like post');
+    }
+  };
+
+  const handleSavePost = async (postId: string) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      await toggleSavePost(postId);
+      // Refresh the saved posts list after toggling
+      await fetchSavedPosts();
+    } catch (err) {
+      console.error('Error saving post:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save post');
     }
   };
 
@@ -267,7 +284,7 @@ export default function SavedPosts() {
                   <div className="flex items-center space-x-2">
                     {user && (
                       <button
-                        onClick={() => toggleSavePost(post._id)}
+                        onClick={() => handleSavePost(post._id)}
                         className={`flex items-center ${
                           savedPostIds.includes(post._id)
                             ? 'text-pink-400 hover:text-pink-300'
