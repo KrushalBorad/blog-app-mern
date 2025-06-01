@@ -287,22 +287,22 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex flex-wrap justify-between items-center gap-4 mb-12">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+    <div className="min-h-screen py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 sm:mb-12">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
             Blog Posts
           </h1>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 w-full sm:w-auto">
             {user && (
               <Link
                 href="/create"
-                className="bg-purple-900/50 hover:bg-purple-800/60 text-purple-300 px-6 py-3 rounded-lg font-semibold 
+                className="bg-purple-900/50 hover:bg-purple-800/60 text-purple-300 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold 
                   transform hover:scale-105 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]
-                  flex items-center gap-2"
+                  flex items-center gap-2 text-sm sm:text-base w-full sm:w-auto justify-center"
               >
                 <span>Create Post</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
                 </svg>
               </Link>
@@ -310,10 +310,10 @@ export default function Home() {
             {user && (
               <button
                 onClick={handleDeleteAll}
-                className="flex items-center text-red-400 hover:text-red-300 transition-colors duration-300 text-sm bg-red-900/20 px-4 py-2 rounded-lg"
+                className="flex items-center text-red-400 hover:text-red-300 transition-colors duration-300 text-xs sm:text-sm bg-red-900/20 px-3 sm:px-4 py-2 rounded-lg w-full sm:w-auto justify-center"
                 title="Delete all your posts"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
                 Delete All Posts
@@ -322,13 +322,13 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {posts.map((post: BlogPost) => (
             <article
               key={post._id}
               className="bg-gray-900/50 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300 flex flex-col border border-purple-900/30"
             >
-              <div className="relative h-48 w-full">
+              <div className="relative h-40 sm:h-48 w-full">
                 <img
                   src={getPostImage(post.title, post.imageUrl)}
                   alt={post.title}
@@ -339,8 +339,8 @@ export default function Home() {
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <h2 className="text-xl font-bold text-white line-clamp-2 hover:text-purple-300 transition-colors duration-300">
+                <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
+                  <h2 className="text-lg sm:text-xl font-bold text-white line-clamp-2 hover:text-purple-300 transition-colors duration-300">
                     <Link href={`/blog/${post._id}`}>
                       {post.title}
                     </Link>
@@ -348,15 +348,15 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="p-4 flex-grow">
-                <div className="flex items-center justify-between mb-4">
+              <div className="p-3 sm:p-4 flex-grow">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
                   <div className="flex items-center space-x-2">
-                    <div className={`w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-[0_0_15px_rgba(168,85,247,0.5)]`}>
+                    <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-[0_0_15px_rgba(168,85,247,0.5)]`}>
                       {post.author?.name?.charAt(0) || '?'}
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-300">{post.author?.name || 'Unknown Author'}</span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs sm:text-sm font-medium text-gray-300">{post.author?.name || 'Unknown Author'}</span>
+                      <span className="text-[10px] sm:text-xs text-gray-500">
                         {new Date(post.createdAt).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'short',
@@ -367,24 +367,24 @@ export default function Home() {
                   </div>
                 </div>
 
-                <p className="text-gray-400 text-sm line-clamp-3 mb-4">
+                <p className="text-gray-400 text-xs sm:text-sm line-clamp-3 mb-3 sm:mb-4">
                   {post.content}
                 </p>
 
-                <div className="flex justify-between items-center mt-auto pt-4 border-t border-purple-900/30">
-                  <div className="flex space-x-4">
+                <div className="flex flex-wrap justify-between items-center mt-auto pt-3 sm:pt-4 border-t border-purple-900/30 gap-2">
+                  <div className="flex space-x-3 sm:space-x-4">
                     <button
                       onClick={() => handleLike(post._id)}
                       className={`flex items-center ${
                         isPostLiked(post)
                           ? 'text-red-400 hover:text-red-300'
                           : 'text-gray-400 hover:text-gray-300'
-                      } transition-colors duration-300 text-sm`}
+                      } transition-colors duration-300 text-xs sm:text-sm`}
                       title={user ? 'Like/Unlike post' : 'Login to like posts'}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 mr-1"
+                        className="h-3 w-3 sm:h-4 sm:w-4 mr-1"
                         viewBox="0 0 20 20"
                         fill={isPostLiked(post) ? 'currentColor' : 'none'}
                         stroke="currentColor"
@@ -395,9 +395,9 @@ export default function Home() {
                     </button>
                     <Link
                       href={`/blog/${post._id}`}
-                      className="flex items-center text-purple-400 hover:text-purple-300 transition-colors duration-300 text-sm"
+                      className="flex items-center text-purple-400 hover:text-purple-300 transition-colors duration-300 text-xs sm:text-sm"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                       </svg>
                       Read
@@ -407,7 +407,7 @@ export default function Home() {
                     {user && (
                       <button
                         onClick={() => handleDelete(post._id)}
-                        className={`flex items-center text-red-400 hover:text-red-300 transition-colors duration-300 text-sm ${
+                        className={`flex items-center text-red-400 hover:text-red-300 transition-colors duration-300 text-xs sm:text-sm ${
                           (post.author?.email?.toString() || post.author?.name?.toString() || '') !== (user.id?.toString() || '')
                             ? 'opacity-50 cursor-not-allowed'
                             : ''
@@ -419,7 +419,7 @@ export default function Home() {
                         }
                         disabled={(post.author?.email?.toString() || post.author?.name?.toString() || '') !== (user.id?.toString() || '')}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
                         Delete
@@ -432,11 +432,11 @@ export default function Home() {
                           savedPosts.includes(post._id)
                             ? 'text-pink-400 hover:text-pink-300'
                             : 'text-gray-400 hover:text-gray-300'
-                        } transition-colors duration-300 text-sm`}
+                        } transition-colors duration-300 text-xs sm:text-sm`}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 mr-1"
+                          className="h-3 w-3 sm:h-4 sm:w-4 mr-1"
                           viewBox="0 0 20 20"
                           fill={savedPosts.includes(post._id) ? 'currentColor' : 'none'}
                           stroke="currentColor"
