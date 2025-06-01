@@ -156,12 +156,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       );
 
       if (response.data.savedBy.includes(user.id)) {
-        setSavedPosts(prev => [...prev, postId]);
+        setSavedPosts(prev => {
+          if (!prev.includes(postId)) {
+            return [...prev, postId];
+          }
+          return prev;
+        });
       } else {
         setSavedPosts(prev => prev.filter(id => id !== postId));
       }
+
+      const savedResponse = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (savedResponse.data) {
+        setSavedPosts(savedResponse.data.map((post: any) => post._id));
+      }
     } catch (err) {
       console.error('Error toggling save post:', err);
+      const savedResponse = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (savedResponse.data) {
+        setSavedPosts(savedResponse.data.map((post: any) => post._id));
+      }
     }
   };
 
