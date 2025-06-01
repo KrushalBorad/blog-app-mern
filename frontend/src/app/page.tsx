@@ -102,8 +102,8 @@ export default function Home() {
     }
 
     // Check if user is the author
-    const userIdStr = user.id.toString();
-    const authorIdStr = post.author.email ? post.author.email.toString() : post.author.name.toString();
+    const userIdStr = user.id?.toString() || '';
+    const authorIdStr = post.author?.email?.toString() || post.author?.name?.toString() || '';
     
     console.log('Frontend delete check:', {
       userId: userIdStr,
@@ -279,7 +279,7 @@ export default function Home() {
             >
               <div className="relative h-48 w-full">
                 <img
-                  src={post.imageUrl}
+                  src={getPostImage(post.title, post.imageUrl)}
                   alt={post.title}
                   className="object-cover w-full h-full"
                   onError={(e) => {
