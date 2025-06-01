@@ -15,11 +15,17 @@ export default function CreatePost() {
   const [mounted, setMounted] = useState(false);
   
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (mounted && !authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [mounted, authLoading, isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +41,11 @@ export default function CreatePost() {
       }
 
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/posts`, formData, {
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -44,31 +54,38 @@ export default function CreatePost() {
 
       router.push(`/blog/${response.data._id}`);
     } catch (err) {
-      setError('Failed to create post. Please try again.');
       console.error('Error creating post:', err);
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || 'Failed to create post. Please try again.');
+      } else {
+        setError('Failed to create post. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  if (!mounted) {
-    return null;
+  if (!mounted || authLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-400"></div>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
-    router.push('/login');
     return null;
   }
 
   return (
     <div className="min-h-screen pt-20 pb-10">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white/80 backdrop-blur-sm shadow-xl rounded-lg p-6 sm:p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Create New Post</h1>
+        <div className="bg-gray-900/50 backdrop-blur-sm shadow-xl rounded-lg p-6 sm:p-8 border border-purple-900/30">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-8">Create New Post</h1>
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="title" className="block text-sm font-medium text-gray-300">
                 Title
               </label>
               <input
@@ -76,13 +93,13 @@ export default function CreatePost() {
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
+                className="mt-1 block w-full rounded-md bg-gray-800/50 border-gray-700 text-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="content" className="block text-sm font-medium text-gray-300">
                 Content
               </label>
               <textarea
@@ -90,20 +107,20 @@ export default function CreatePost() {
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows={8}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
+                className="mt-1 block w-full rounded-md bg-gray-800/50 border-gray-700 text-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Cover Image
               </label>
               <ImageUpload onImageUpload={setImage} />
             </div>
 
             {error && (
-              <div className="text-red-600 text-sm">{error}</div>
+              <div className="text-red-400 text-sm">{error}</div>
             )}
 
             <div className="flex justify-end">
