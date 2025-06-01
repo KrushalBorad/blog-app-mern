@@ -155,7 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       );
 
-      if (response.data.saved) {
+      if (response.data.savedBy.includes(user.id)) {
         setSavedPosts(prev => [...prev, postId]);
       } else {
         setSavedPosts(prev => prev.filter(id => id !== postId));

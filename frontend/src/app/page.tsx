@@ -213,6 +213,43 @@ export default function Home() {
     return post.likes.some(id => id && id.toString() === userIdStr);
   };
 
+  const handleDeleteAll = async () => {
+    if (!user) {
+      setError('You must be logged in to delete posts');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete all your posts? This action cannot be undone.')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Authentication token not found');
+        return;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/all`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to delete posts');
+      }
+
+      // Remove all posts by the current user from the local state
+      setPosts(posts.filter(p => p.author?.email?.toString() !== user.id?.toString()));
+      setError(''); // Clear any existing errors
+    } catch (err) {
+      console.error('Error deleting all posts:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete posts');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -268,6 +305,18 @@ export default function Home() {
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
               </svg>
             </Link>
+          )}
+          {user && (
+            <button
+              onClick={handleDeleteAll}
+              className="flex items-center text-red-400 hover:text-red-300 transition-colors duration-300 text-sm"
+              title="Delete all your posts"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              Delete All Posts
+            </button>
           )}
         </div>
 

@@ -255,4 +255,32 @@ router.post('/:id/like', auth, async (req, res) => {
   }
 });
 
+// Delete all posts for the current user
+router.delete('/all', auth, async (req, res) => {
+  try {
+    // Find all posts by the current user
+    const blogs = await Blog.find({ author: req.user.id });
+    
+    // Delete associated image files
+    for (const blog of blogs) {
+      if (blog.imageUrl && !blog.imageUrl.includes('default-blog.jpg')) {
+        const imagePath = path.join(__dirname, '../public', blog.imageUrl);
+        try {
+          require('fs').unlinkSync(imagePath);
+        } catch (err) {
+          console.error('Error deleting image file:', err);
+        }
+      }
+    }
+
+    // Delete all posts
+    await Blog.deleteMany({ author: req.user.id });
+    
+    res.json({ message: 'All posts deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting all posts:', error);
+    res.status(500).json({ message: 'Error deleting all posts', error: error.message });
+  }
+});
+
 module.exports = router; 
