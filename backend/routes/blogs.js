@@ -11,14 +11,23 @@ router.post('/', auth, upload, async (req, res) => {
     console.log('Create post request:', {
       body: req.body,
       file: req.file,
-      user: req.user
+      user: req.user,
+      headers: req.headers
     });
 
     // Validate required fields
     if (!req.body.title || !req.body.content) {
-      console.log('Missing required fields:', { title: !!req.body.title, content: !!req.body.content });
+      console.log('Missing required fields:', { 
+        title: req.body.title, 
+        content: req.body.content,
+        body: req.body
+      });
       return res.status(400).json({ 
-        message: 'Title and content are required' 
+        message: 'Title and content are required',
+        received: {
+          title: req.body.title,
+          content: req.body.content
+        }
       });
     }
 

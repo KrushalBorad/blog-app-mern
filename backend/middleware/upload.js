@@ -8,50 +8,73 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Configure multer for disk storage
+// Configure storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadDir);
+    console.log('Processing file upload:', {
+      originalname: file.originalname,
+      mimetype: file.mimetype
+    });
+    cb(null, path.join(__dirname, '../public/uploads'));
   },
   filename: function (req, file, cb) {
-    // Create unique filename with timestamp and original extension
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
   }
 });
 
-// Create multer instance with configuration
+// File filter
+const fileFilter = (req, file, cb) => {
+  console.log('Checking file type:', {
+    mimetype: file.mimetype,
+    originalname: file.originalname
+  });
+
+  // Accept images only
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+    console.log('Invalid file type:', file.mimetype);
+    return cb(new Error('Only image files are allowed!'), false);
+  }
+
+  if (!file.mimetype.startsWith('image/')) {
+    console.log('Invalid mime type:', file.mimetype);
+    return cb(new Error('Only image files are allowed!'), false);
+  }
+
+  cb(null, true);
+};
+
+// Configure multer
 const upload = multer({
   storage: storage,
+  fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    // Accept only image files
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'), false);
-    }
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   }
-});
+}).single('image');
 
 // Wrap multer middleware to handle errors
 const uploadMiddleware = (req, res, next) => {
-  const uploadSingle = upload.single('image');
+  console.log('Starting file upload middleware');
   
-  uploadSingle(req, res, function(err) {
+  upload(req, res, function (err) {
     if (err instanceof multer.MulterError) {
-      // A Multer error occurred when uploading
+      console.error('Multer error:', err);
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({ message: 'File size too large. Maximum size is 5MB.' });
       }
       return res.status(400).json({ message: err.message });
     } else if (err) {
-      // An unknown error occurred
-      return res.status(500).json({ message: err.message });
+      console.error('Upload error:', err);
+      return res.status(400).json({ message: err.message });
     }
-    // Everything went fine
+
+    console.log('File upload successful:', {
+      file: req.file,
+      body: req.body
+    });
+    
     next();
   });
 };
