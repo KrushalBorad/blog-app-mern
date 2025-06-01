@@ -178,15 +178,18 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update a blog post
-router.put('/:id', auth, upload, async (req, res) => {
+router.put('/:id', upload, async (req, res) => {
   try {
+    console.log('Update post request:', {
+      postId: req.params.id,
+      body: req.body,
+      file: req.file
+    });
+
     const blog = await Blog.findById(req.params.id);
     if (!blog) {
+      console.log('Blog not found:', req.params.id);
       return res.status(404).json({ message: 'Blog not found' });
-    }
-
-    if (blog.author.toString() !== req.user.id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to update this blog' });
     }
 
     let imageUrl = blog.imageUrl;
@@ -210,9 +213,20 @@ router.put('/:id', auth, upload, async (req, res) => {
     blog.imageUrl = imageUrl;
 
     await blog.save();
+    console.log('Blog updated successfully:', blog);
+
     res.json(blog);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating blog', error: error.message });
+    console.error('Error updating blog:', {
+      error: error.message,
+      stack: error.stack,
+      postId: req.params.id
+    });
+    res.status(500).json({ 
+      message: 'Error updating blog', 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
