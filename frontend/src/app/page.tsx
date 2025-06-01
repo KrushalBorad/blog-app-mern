@@ -65,14 +65,14 @@ export default function Home() {
   const fetchPosts = async () => {
     try {
       console.log('Fetching posts...');
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`);
+      const response = await axios.get<BlogResponse>(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`);
       console.log('Response status:', response.status);
       
-      if (!response.data) {
-        throw new Error('Failed to fetch posts');
+      if (!response.data || !response.data.blogs) {
+        throw new Error('Invalid response format');
       }
       
-      setPosts(response.data.map((post: BlogPost) => ({
+      setPosts(response.data.blogs.map((post: BlogPost) => ({
         ...post,
         likes: post.likes || []
       })));
@@ -271,154 +271,136 @@ export default function Home() {
           )}
         </div>
 
-        {!posts || posts.length === 0 ? (
-          <div className="text-center py-16 bg-gray-900/50 backdrop-blur-sm rounded-2xl shadow-lg transform hover:shadow-xl transition-all duration-300 border border-purple-900/30">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-            </svg>
-            <p className="text-gray-400 text-xl mb-4">No blog posts yet.</p>
-            {user && (
-              <Link href="/create" 
-                className="inline-flex items-center text-purple-400 hover:text-pink-400 font-semibold transition-colors duration-300">
-                <span>Write your first post</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post: BlogPost) => (
-              <article
-                key={post._id}
-                className="bg-gray-900/50 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300 flex flex-col border border-purple-900/30"
-              >
-                <div className="relative h-48 w-full">
-                  <img
-                    src={getPostImage(post.title, post.imageUrl)}
-                    alt={post.title}
-                    className="object-cover w-full h-full"
-                    onError={(e) => {
-                      const img = e.target as HTMLImageElement;
-                      img.src = `https://placehold.co/800x600/2a2a2a/ffffff.jpg?text=Blog+Post`;
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <h2 className="text-xl font-bold text-white line-clamp-2 hover:text-purple-300 transition-colors duration-300">
-                      <Link href={`/blog/${post._id}`}>
-                        {post.title}
-                      </Link>
-                    </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {posts.map((post: BlogPost) => (
+            <article
+              key={post._id}
+              className="bg-gray-900/50 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300 flex flex-col border border-purple-900/30"
+            >
+              <div className="relative h-48 w-full">
+                <img
+                  src={post.imageUrl}
+                  alt={post.title}
+                  className="object-cover w-full h-full"
+                  onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    img.src = `https://placehold.co/800x600/2a2a2a/ffffff.jpg?text=${encodeURIComponent(post.title)}`;
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <h2 className="text-xl font-bold text-white line-clamp-2 hover:text-purple-300 transition-colors duration-300">
+                    <Link href={`/blog/${post._id}`}>
+                      {post.title}
+                    </Link>
+                  </h2>
+                </div>
+              </div>
+
+              <div className="p-4 flex-grow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-[0_0_15px_rgba(168,85,247,0.5)]`}>
+                      {post.author?.name?.charAt(0) || '?'}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-300">{post.author?.name || 'Unknown Author'}</span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(post.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="p-4 flex-grow">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-[0_0_15px_rgba(168,85,247,0.5)]`}>
-                        {post.author?.name?.charAt(0) || '?'}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-300">{post.author?.name || 'Unknown Author'}</span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(post.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </span>
-                      </div>
-                    </div>
+                <p className="text-gray-400 text-sm line-clamp-3 mb-4">
+                  {post.content}
+                </p>
+
+                <div className="flex justify-between items-center mt-auto pt-4 border-t border-purple-900/30">
+                  <div className="flex space-x-4">
+                    <button
+                      onClick={() => handleLike(post._id)}
+                      className={`flex items-center ${
+                        isPostLiked(post)
+                          ? 'text-red-400 hover:text-red-300'
+                          : 'text-gray-400 hover:text-gray-300'
+                      } transition-colors duration-300 text-sm`}
+                      title={user ? 'Like/Unlike post' : 'Login to like posts'}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1"
+                        viewBox="0 0 20 20"
+                        fill={isPostLiked(post) ? 'currentColor' : 'none'}
+                        stroke="currentColor"
+                      >
+                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                      </svg>
+                      {post.likes?.filter(id => id != null).length || 0} {post.likes?.filter(id => id != null).length === 1 ? 'Like' : 'Likes'}
+                    </button>
+                    <Link
+                      href={`/blog/${post._id}`}
+                      className="flex items-center text-purple-400 hover:text-purple-300 transition-colors duration-300 text-sm"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                      </svg>
+                      Read
+                    </Link>
                   </div>
-
-                  <p className="text-gray-400 text-sm line-clamp-3 mb-4">
-                    {post.content}
-                  </p>
-
-                  <div className="flex justify-between items-center mt-auto pt-4 border-t border-purple-900/30">
-                    <div className="flex space-x-4">
+                  <div className="flex items-center space-x-2">
+                    {user && (
                       <button
-                        onClick={() => handleLike(post._id)}
+                        onClick={() => handleDelete(post._id)}
+                        className={`flex items-center text-red-400 hover:text-red-300 transition-colors duration-300 text-sm ${
+                          (post.author.email || post.author.name).toString() !== user.id.toString()
+                            ? 'opacity-50 cursor-not-allowed'
+                            : ''
+                        }`}
+                        title={
+                          (post.author.email || post.author.name).toString() === user.id.toString()
+                            ? 'Delete post'
+                            : 'You can only delete your own posts'
+                        }
+                        disabled={(post.author.email || post.author.name).toString() !== user.id.toString()}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        Delete
+                      </button>
+                    )}
+                    {user && (
+                      <button
+                        onClick={() => toggleSavePost(post._id)}
                         className={`flex items-center ${
-                          isPostLiked(post)
-                            ? 'text-red-400 hover:text-red-300'
+                          savedPosts.includes(post._id)
+                            ? 'text-pink-400 hover:text-pink-300'
                             : 'text-gray-400 hover:text-gray-300'
                         } transition-colors duration-300 text-sm`}
-                        title={user ? 'Like/Unlike post' : 'Login to like posts'}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-4 w-4 mr-1"
                           viewBox="0 0 20 20"
-                          fill={isPostLiked(post) ? 'currentColor' : 'none'}
+                          fill={savedPosts.includes(post._id) ? 'currentColor' : 'none'}
                           stroke="currentColor"
                         >
-                          <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                          <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                         </svg>
-                        {post.likes?.filter(id => id != null).length || 0} {post.likes?.filter(id => id != null).length === 1 ? 'Like' : 'Likes'}
+                        {savedPosts.includes(post._id) ? 'Saved' : 'Save'}
                       </button>
-                      <Link
-                        href={`/blog/${post._id}`}
-                        className="flex items-center text-purple-400 hover:text-purple-300 transition-colors duration-300 text-sm"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                        </svg>
-                        Read
-                      </Link>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {user && (
-                        <button
-                          onClick={() => handleDelete(post._id)}
-                          className={`flex items-center text-red-400 hover:text-red-300 transition-colors duration-300 text-sm ${
-                            (post.author.email || post.author.name).toString() !== user.id.toString()
-                              ? 'opacity-50 cursor-not-allowed'
-                              : ''
-                          }`}
-                          title={
-                            (post.author.email || post.author.name).toString() === user.id.toString()
-                              ? 'Delete post'
-                              : 'You can only delete your own posts'
-                          }
-                          disabled={(post.author.email || post.author.name).toString() !== user.id.toString()}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          Delete
-                        </button>
-                      )}
-                      {user && (
-                        <button
-                          onClick={() => toggleSavePost(post._id)}
-                          className={`flex items-center ${
-                            savedPosts.includes(post._id)
-                              ? 'text-pink-400 hover:text-pink-300'
-                              : 'text-gray-400 hover:text-gray-300'
-                          } transition-colors duration-300 text-sm`}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 mr-1"
-                            viewBox="0 0 20 20"
-                            fill={savedPosts.includes(post._id) ? 'currentColor' : 'none'}
-                            stroke="currentColor"
-                          >
-                            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                          </svg>
-                          {savedPosts.includes(post._id) ? 'Saved' : 'Save'}
-                        </button>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </div>
-              </article>
-            ))}
-          </div>
-        )}
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
     </div>
   );
