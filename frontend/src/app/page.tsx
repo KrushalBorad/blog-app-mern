@@ -12,11 +12,11 @@ interface BlogPost {
   content: string;
   imageUrl: string;
   author: {
-    _id: string;
     name: string;
+    email: string;
   };
   createdAt: string;
-  likes: string[];
+  likes?: string[];
 }
 
 interface BlogResponse {
@@ -58,23 +58,24 @@ const getProfileColor = (name: string) => {
 export default function Home() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const { user, savedPosts, toggleSavePost } = useAuth();
   const router = useRouter();
 
   const fetchPosts = async () => {
     try {
       console.log('Fetching posts...');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`);
       console.log('Response status:', response.status);
       
-      if (!response.ok) {
+      if (!response.data) {
         throw new Error('Failed to fetch posts');
       }
       
-      const data = await response.json();
-      console.log('Received data:', data);
-      setPosts(data.blogs || []);
+      setPosts(response.data.map((post: BlogPost) => ({
+        ...post,
+        likes: post.likes || []
+      })));
     } catch (err) {
       console.error('Error fetching posts:', err);
       setError('Failed to load blog posts');
@@ -102,7 +103,7 @@ export default function Home() {
 
     // Check if user is the author
     const userIdStr = user.id.toString();
-    const authorIdStr = post.author._id ? post.author._id.toString() : post.author.toString();
+    const authorIdStr = post.author.email ? post.author.email.toString() : post.author.name.toString();
     
     console.log('Frontend delete check:', {
       userId: userIdStr,
@@ -220,6 +221,34 @@ export default function Home() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  if (posts.length === 0) {
+    return (
+      <div className="text-center py-16 bg-gray-900/50 backdrop-blur-sm rounded-2xl shadow-lg transform hover:shadow-xl transition-all duration-300 border border-purple-900/30">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+        </svg>
+        <p className="text-gray-400 text-xl mb-4">No blog posts yet.</p>
+        {user && (
+          <Link href="/create" 
+            className="inline-flex items-center text-purple-400 hover:text-pink-400 font-semibold transition-colors duration-300">
+            <span>Write your first post</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </Link>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4">
@@ -241,21 +270,6 @@ export default function Home() {
             </Link>
           )}
         </div>
-
-        {error && (
-          <div className="bg-red-900/30 backdrop-blur-sm border-l-4 border-red-500 p-4 rounded-lg mb-8 animate-fade-in text-red-200">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-200">{error}</p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {!posts || posts.length === 0 ? (
           <div className="text-center py-16 bg-gray-900/50 backdrop-blur-sm rounded-2xl shadow-lg transform hover:shadow-xl transition-all duration-300 border border-purple-900/30">
@@ -360,16 +374,16 @@ export default function Home() {
                         <button
                           onClick={() => handleDelete(post._id)}
                           className={`flex items-center text-red-400 hover:text-red-300 transition-colors duration-300 text-sm ${
-                            (post.author._id || post.author).toString() !== user.id.toString()
+                            (post.author.email || post.author.name).toString() !== user.id.toString()
                               ? 'opacity-50 cursor-not-allowed'
                               : ''
                           }`}
                           title={
-                            (post.author._id || post.author).toString() === user.id.toString()
+                            (post.author.email || post.author.name).toString() === user.id.toString()
                               ? 'Delete post'
                               : 'You can only delete your own posts'
                           }
-                          disabled={(post.author._id || post.author).toString() !== user.id.toString()}
+                          disabled={(post.author.email || post.author.name).toString() !== user.id.toString()}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
