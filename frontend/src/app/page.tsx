@@ -214,7 +214,7 @@ export default function Home() {
   };
 
   const handleDeleteAll = async () => {
-    if (!user) {
+    if (!user || !user.id) {
       setError('You must be logged in to delete posts');
       return;
     }
@@ -260,7 +260,11 @@ export default function Home() {
       }
 
       // Remove all posts by the current user from the local state
-      setPosts(posts.filter(p => p.author?.email?.toString() !== user.id?.toString()));
+      setPosts(posts.filter(p => {
+        const postAuthorId = p.author?.email?.toString() || p.author?.name?.toString() || '';
+        const userId = user.id?.toString() || '';
+        return postAuthorId !== userId;
+      }));
       setError(''); // Clear any existing errors
     } catch (err) {
       console.error('Error deleting all posts:', err);
