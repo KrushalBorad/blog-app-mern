@@ -141,10 +141,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const toggleSavePost = async (postId: string) => {
     if (!user) return;
 
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
 
+    try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${postId}/toggle-save`,
         {},
@@ -180,16 +180,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (err) {
       console.error('Error toggling save post:', err);
-      const savedResponse = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      try {
+        const savedResponse = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (savedResponse.data) {
+          setSavedPosts(savedResponse.data.map((post: any) => post._id));
         }
-      );
-      if (savedResponse.data) {
-        setSavedPosts(savedResponse.data.map((post: any) => post._id));
+      } catch (fetchErr) {
+        console.error('Error fetching saved posts after toggle error:', fetchErr);
+        setSavedPosts([]);
       }
     }
   };
