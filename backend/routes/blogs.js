@@ -192,38 +192,78 @@ router.put('/:id', upload, async (req, res) => {
       return res.status(404).json({ message: 'Blog not found' });
     }
 
+    // Validate required fields
+    if (!req.body.title || !req.body.content) {
+      console.log('Missing required fields:', { 
+        title: req.body.title, 
+        content: req.body.content,
+        body: req.body
+      });
+      return res.status(400).json({ 
+        message: 'Title and content are required',
+        received: {
+          title: req.body.title,
+          content: req.body.content
+        }
+      });
+    }
+
     let imageUrl = blog.imageUrl;
     if (req.file) {
       // If there's an existing image, delete it (except default image)
       if (blog.imageUrl && !blog.imageUrl.includes('default-blog.jpg')) {
         const oldImagePath = path.join(__dirname, '../public', blog.imageUrl);
         try {
-          require('fs').unlinkSync(oldImagePath);
+          if (require('fs').existsSync(oldImagePath)) {
+            require('fs').unlinkSync(oldImagePath);
+            console.log('Deleted old image:', oldImagePath);
+          }
         } catch (err) {
           console.error('Error deleting old image:', err);
+          // Continue with update even if image deletion fails
         }
       }
 
       // Update with new image URL
       imageUrl = `/uploads/${req.file.filename}`;
+      console.log('New image uploaded:', imageUrl);
     }
 
-    blog.title = req.body.title || blog.title;
-    blog.content = req.body.content || blog.content;
+    // Update blog fields
+    blog.title = req.body.title;
+    blog.content = req.body.content;
     blog.imageUrl = imageUrl;
 
-    await blog.save();
-    console.log('Blog updated successfully:', blog);
+    console.log('Updating blog with:', {
+      title: blog.title,
+      content: blog.content,
+      imageUrl: blog.imageUrl
+    });
 
-    res.json(blog);
+    const updatedBlog = await blog.save();
+    console.log('Blog updated successfully:', updatedBlog);
+
+    // Populate author details before sending response
+    const populatedBlog = await Blog.findById(updatedBlog._id).populate('author', 'name email');
+    res.json(populatedBlog);
   } catch (error) {
     console.error('Error updating blog:', {
       error: error.message,
       stack: error.stack,
-      postId: req.params.id
+      postId: req.params.id,
+      body: req.body
     });
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: 'Validation error', 
+        details: error.message,
+        error: error
+      });
+    }
+    
     res.status(500).json({ 
-      message: 'Error updating blog', 
+      message: 'Error updating blog post', 
       error: error.message,
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
