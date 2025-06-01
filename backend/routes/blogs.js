@@ -6,7 +6,7 @@ const upload = require('../middleware/upload');
 const path = require('path');
 
 // Create a new blog post with image upload
-router.post('/', auth, upload.single('image'), async (req, res) => {
+router.post('/', auth, upload, async (req, res) => {
   try {
     console.log('Create post request:', {
       body: req.body,
@@ -127,7 +127,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update a blog post
-router.put('/:id', auth, upload.single('image'), async (req, res) => {
+router.put('/:id', auth, upload, async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
     if (!blog) {
