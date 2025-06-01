@@ -305,7 +305,50 @@ export default function Home() {
       console.log('Save post response:', response.data);
 
       // Update the saved posts in the context
-      toggleSavePost(postId);
+      if (response.data.savedBy.includes(user.id)) {
+        // Add to saved posts if not already saved
+        if (!savedPosts.includes(postId)) {
+          toggleSavePost(postId);
+          // Force a refresh of the saved posts list
+          const savedResponse = await axios.get(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+          // Update the saved posts in the context with the fresh data
+          savedResponse.data.forEach((post: BlogPost) => {
+            if (!savedPosts.includes(post._id)) {
+              toggleSavePost(post._id);
+            }
+          });
+        }
+      } else {
+        // Remove from saved posts if already saved
+        if (savedPosts.includes(postId)) {
+          toggleSavePost(postId);
+          // Force a refresh of the saved posts list
+          const savedResponse = await axios.get(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+          // Update the saved posts in the context with the fresh data
+          const currentSavedIds = savedResponse.data.map((post: BlogPost) => post._id);
+          savedPosts.forEach(savedId => {
+            if (!currentSavedIds.includes(savedId)) {
+              toggleSavePost(savedId);
+            }
+          });
+        }
+      }
     } catch (err) {
       console.error('Error saving post:', err);
       if (axios.isAxiosError(err)) {
