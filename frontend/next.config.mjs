@@ -20,9 +20,13 @@ const nextConfig = {
         pathname: '/**',
       }
     ],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    domains: ['res.cloudinary.com', 'blog-app-backend-qy4q.onrender.com'],
   },
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://blog-app-backend-qy4q.onrender.com',
   },
   async rewrites() {
     return [
@@ -43,7 +47,14 @@ const nextConfig = {
         destination: `${process.env.NEXT_PUBLIC_API_URL || 'https://blog-app-backend-qy4q.onrender.com'}/images/:path*`
       }
     ]
-  }
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname, 'src'),
+    };
+    return config;
+  },
 };
 
 export default nextConfig; 
