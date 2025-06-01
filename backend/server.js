@@ -12,7 +12,10 @@ app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true
 }));
+
+// Add body parser middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Create required directories if they don't exist
 const uploadsDir = path.join(__dirname, 'public/uploads');
@@ -33,7 +36,7 @@ app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/blogs', require('./routes/blogs'));
 
-// Health check route
+// Health check endpoint
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok' });
 });

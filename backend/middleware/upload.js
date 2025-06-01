@@ -34,6 +34,24 @@ const upload = multer({
       cb(new Error('Only image files are allowed!'), false);
     }
   }
-});
+}).single('image');
 
-module.exports = upload; 
+// Wrap multer middleware to handle errors
+const uploadMiddleware = (req, res, next) => {
+  upload(req, res, function(err) {
+    if (err instanceof multer.MulterError) {
+      // A Multer error occurred when uploading
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ message: 'File size too large. Maximum size is 5MB.' });
+      }
+      return res.status(400).json({ message: err.message });
+    } else if (err) {
+      // An unknown error occurred
+      return res.status(500).json({ message: err.message });
+    }
+    // Everything went fine
+    next();
+  });
+};
+
+module.exports = uploadMiddleware; 
