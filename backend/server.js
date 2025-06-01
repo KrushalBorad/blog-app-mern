@@ -32,9 +32,13 @@ if (!fs.existsSync(imagesDir)) {
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/blogs', require('./routes/blogs'));
+// Import routes
+const authRoutes = require('./routes/auth');
+const blogRoutes = require('./routes/blogs');
+
+// Use routes
+app.use('/api/auth', authRoutes);
+app.use('/api/blogs', blogRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

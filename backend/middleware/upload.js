@@ -34,11 +34,13 @@ const upload = multer({
       cb(new Error('Only image files are allowed!'), false);
     }
   }
-}).single('image');
+});
 
 // Wrap multer middleware to handle errors
 const uploadMiddleware = (req, res, next) => {
-  upload(req, res, function(err) {
+  const uploadSingle = upload.single('image');
+  
+  uploadSingle(req, res, function(err) {
     if (err instanceof multer.MulterError) {
       // A Multer error occurred when uploading
       if (err.code === 'LIMIT_FILE_SIZE') {
