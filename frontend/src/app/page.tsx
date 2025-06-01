@@ -403,4 +403,65 @@ export default function Home() {
                       {post.likes?.filter(id => id != null).length || 0} {post.likes?.filter(id => id != null).length === 1 ? 'Like' : 'Likes'}
                     </button>
                     <Link
-                      href={`/blog/${post._id}`
+                      href={`/blog/${post._id}`}
+                      className="flex items-center text-purple-400 hover:text-purple-300 transition-colors duration-300 text-xs sm:text-sm"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                      </svg>
+                      Read
+                    </Link>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {user && (
+                      <button
+                        onClick={() => handleDelete(post._id)}
+                        className={`flex items-center text-red-400 hover:text-red-300 transition-colors duration-300 text-xs sm:text-sm ${
+                          (post.author?.email?.toString() || post.author?.name?.toString() || '') !== (user.id?.toString() || '')
+                            ? 'opacity-50 cursor-not-allowed'
+                            : ''
+                        }`}
+                        title={
+                          (post.author?.email?.toString() || post.author?.name?.toString() || '') === (user.id?.toString() || '')
+                            ? 'Delete post'
+                            : 'You can only delete your own posts'
+                        }
+                        disabled={(post.author?.email?.toString() || post.author?.name?.toString() || '') !== (user.id?.toString() || '')}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        Delete
+                      </button>
+                    )}
+                    {user && (
+                      <button
+                        onClick={() => toggleSavePost(post._id)}
+                        className={`flex items-center ${
+                          savedPosts.includes(post._id)
+                            ? 'text-pink-400 hover:text-pink-300'
+                            : 'text-gray-400 hover:text-gray-300'
+                        } transition-colors duration-300 text-xs sm:text-sm`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3 w-3 sm:h-4 sm:w-4 mr-1"
+                          viewBox="0 0 20 20"
+                          fill={savedPosts.includes(post._id) ? 'currentColor' : 'none'}
+                          stroke="currentColor"
+                        >
+                          <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                        </svg>
+                        {savedPosts.includes(post._id) ? 'Saved' : 'Save'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
