@@ -328,14 +328,14 @@ export default function Home() {
       const currentSavedIds = savedResponse.data.map((post: BlogPost) => post._id);
       
       // Remove any saved posts that are no longer in the list
-      savedPosts.forEach(savedId => {
+      savedPosts.forEach((savedId: string) => {
         if (!currentSavedIds.includes(savedId)) {
           toggleSavePost(savedId);
         }
       });
 
       // Add any new saved posts
-      currentSavedIds.forEach(savedId => {
+      currentSavedIds.forEach((savedId: string) => {
         if (!savedPosts.includes(savedId)) {
           toggleSavePost(savedId);
         }
