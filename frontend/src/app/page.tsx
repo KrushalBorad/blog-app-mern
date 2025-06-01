@@ -304,51 +304,43 @@ export default function Home() {
 
       console.log('Save post response:', response.data);
 
-      // Update the saved posts in the context
-      if (response.data.savedBy.includes(user.id)) {
-        // Add to saved posts if not already saved
-        if (!savedPosts.includes(postId)) {
-          toggleSavePost(postId);
-          // Force a refresh of the saved posts list
-          const savedResponse = await axios.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`,
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            }
-          );
-          // Update the saved posts in the context with the fresh data
-          savedResponse.data.forEach((post: BlogPost) => {
-            if (!savedPosts.includes(post._id)) {
-              toggleSavePost(post._id);
-            }
-          });
-        }
-      } else {
-        // Remove from saved posts if already saved
-        if (savedPosts.includes(postId)) {
-          toggleSavePost(postId);
-          // Force a refresh of the saved posts list
-          const savedResponse = await axios.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`,
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            }
-          );
-          // Update the saved posts in the context with the fresh data
-          const currentSavedIds = savedResponse.data.map((post: BlogPost) => post._id);
-          savedPosts.forEach(savedId => {
-            if (!currentSavedIds.includes(savedId)) {
-              toggleSavePost(savedId);
-            }
-          });
-        }
+      // Update the saved posts in the context immediately
+      const isCurrentlySaved = savedPosts.includes(postId);
+      const isNowSaved = response.data.savedBy.includes(user.id);
+
+      // Only toggle if the state has changed
+      if (isCurrentlySaved !== isNowSaved) {
+        toggleSavePost(postId);
       }
+
+      // Force a refresh of the saved posts list
+      const savedResponse = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/saved`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      // Update the saved posts in the context with the fresh data
+      const currentSavedIds = savedResponse.data.map((post: BlogPost) => post._id);
+      
+      // Remove any saved posts that are no longer in the list
+      savedPosts.forEach(savedId => {
+        if (!currentSavedIds.includes(savedId)) {
+          toggleSavePost(savedId);
+        }
+      });
+
+      // Add any new saved posts
+      currentSavedIds.forEach(savedId => {
+        if (!savedPosts.includes(savedId)) {
+          toggleSavePost(savedId);
+        }
+      });
+
     } catch (err) {
       console.error('Error saving post:', err);
       if (axios.isAxiosError(err)) {
