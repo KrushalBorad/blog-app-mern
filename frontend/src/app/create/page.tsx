@@ -45,7 +45,7 @@ export default function CreatePost() {
         throw new Error('Authentication token not found');
       }
 
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs`, formData, {
+      const response = await axios.post('/api/blogs', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
