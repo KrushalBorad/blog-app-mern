@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -48,7 +49,7 @@ const getProfileColor = (name: string) => {
 
 export default function SavedPosts() {
   const [savedPosts, setSavedPosts] = useState<BlogPost[]>([]);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, savedPosts: savedPostIds, toggleSavePost } = useAuth();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -135,14 +136,14 @@ export default function SavedPosts() {
 
   const isPostLiked = (post: BlogPost) => {
     if (!user?.id || !post.likes) return false;
-    const userIdStr = user.id.toString();
+    const userIdStr = user.id?.toString() || '';
     return post.likes.some(id => id && id.toString() === userIdStr);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-400"></div>
       </div>
     );
   }
@@ -157,72 +158,139 @@ export default function SavedPosts() {
 
   if (savedPosts.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">No saved posts yet</div>
+      <div className="text-center py-16 bg-gray-900/50 backdrop-blur-sm rounded-2xl shadow-lg transform hover:shadow-xl transition-all duration-300 border border-purple-900/30">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+        </svg>
+        <p className="text-gray-400 text-xl mb-4">No saved posts yet.</p>
+        <Link href="/" 
+          className="inline-flex items-center text-purple-400 hover:text-pink-400 font-semibold transition-colors duration-300">
+          <span>Browse posts</span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Saved Posts</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {savedPosts.map((post) => {
-            const likeCount = post.likes?.filter(id => id != null).length || 0;
-            return (
-              <article key={post._id} className="bg-white/80 backdrop-blur-sm shadow-xl rounded-lg overflow-hidden">
-                {post.imageUrl && (
-                  <div className="relative h-48">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={post.imageUrl}
-                      alt={post.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const img = e.target as HTMLImageElement;
-                        img.src = `https://placehold.co/800x600/2a2a2a/ffffff.jpg?text=${encodeURIComponent(post.title)}`;
-                      }}
-                    />
-                  </div>
-                )}
-                <div className="p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                    {post.title}
+    <div className="min-h-screen py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex justify-between items-center mb-12">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            Saved Posts
+          </h1>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {savedPosts.map((post: BlogPost) => (
+            <article
+              key={post._id}
+              className="bg-gray-900/50 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300 flex flex-col border border-purple-900/30"
+            >
+              <div className="relative h-48 w-full">
+                <img
+                  src={getPostImage(post.title, post.imageUrl)}
+                  alt={post.title}
+                  className="object-cover w-full h-full"
+                  onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    img.src = `https://placehold.co/800x600/2a2a2a/ffffff.jpg?text=${encodeURIComponent(post.title)}`;
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <h2 className="text-xl font-bold text-white line-clamp-2 hover:text-purple-300 transition-colors duration-300">
+                    <Link href={`/blog/${post._id}`}>
+                      {post.title}
+                    </Link>
                   </h2>
-                  <p className="text-gray-600 mb-4">
-                    {post.content.length > 150
-                      ? `${post.content.substring(0, 150)}...`
-                      : post.content}
-                  </p>
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>By {post.author?.name || 'Unknown Author'}</span>
-                    <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-                  </div>
-                  <button
-                    onClick={() => handleLike(post._id)}
-                    className={`flex items-center mt-4 ${
-                      isPostLiked(post)
-                        ? 'text-red-400 hover:text-red-300'
-                        : 'text-gray-400 hover:text-gray-300'
-                    } transition-colors duration-300 text-sm`}
-                    title={user ? 'Like/Unlike post' : 'Login to like posts'}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      viewBox="0 0 20 20"
-                      fill={isPostLiked(post) ? 'currentColor' : 'none'}
-                      stroke="currentColor"
-                    >
-                      <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                    </svg>
-                    {likeCount} {likeCount === 1 ? 'Like' : 'Likes'}
-                  </button>
                 </div>
-              </article>
-            );
-          })}
+              </div>
+
+              <div className="p-4 flex-grow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${getProfileColor(post.author?.name || '')} flex items-center justify-center text-white font-bold shadow-[0_0_15px_rgba(168,85,247,0.5)]`}>
+                      {post.author?.name?.charAt(0) || '?'}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-300">{post.author?.name || 'Unknown Author'}</span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(post.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-gray-400 text-sm line-clamp-3 mb-4">
+                  {post.content}
+                </p>
+
+                <div className="flex justify-between items-center mt-auto pt-4 border-t border-purple-900/30">
+                  <div className="flex space-x-4">
+                    <button
+                      onClick={() => handleLike(post._id)}
+                      className={`flex items-center ${
+                        isPostLiked(post)
+                          ? 'text-red-400 hover:text-red-300'
+                          : 'text-gray-400 hover:text-gray-300'
+                      } transition-colors duration-300 text-sm`}
+                      title={user ? 'Like/Unlike post' : 'Login to like posts'}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-1"
+                        viewBox="0 0 20 20"
+                        fill={isPostLiked(post) ? 'currentColor' : 'none'}
+                        stroke="currentColor"
+                      >
+                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                      </svg>
+                      {post.likes?.filter(id => id != null).length || 0} {post.likes?.filter(id => id != null).length === 1 ? 'Like' : 'Likes'}
+                    </button>
+                    <Link
+                      href={`/blog/${post._id}`}
+                      className="flex items-center text-purple-400 hover:text-purple-300 transition-colors duration-300 text-sm"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                      </svg>
+                      Read
+                    </Link>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {user && (
+                      <button
+                        onClick={() => toggleSavePost(post._id)}
+                        className={`flex items-center ${
+                          savedPostIds.includes(post._id)
+                            ? 'text-pink-400 hover:text-pink-300'
+                            : 'text-gray-400 hover:text-gray-300'
+                        } transition-colors duration-300 text-sm`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 mr-1"
+                          viewBox="0 0 20 20"
+                          fill={savedPostIds.includes(post._id) ? 'currentColor' : 'none'}
+                          stroke="currentColor"
+                        >
+                          <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                        </svg>
+                        {savedPostIds.includes(post._id) ? 'Saved' : 'Save'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
       </div>
     </div>
