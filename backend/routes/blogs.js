@@ -258,28 +258,52 @@ router.post('/:id/like', auth, async (req, res) => {
 // Delete all posts for the current user
 router.delete('/all', auth, async (req, res) => {
   try {
+    console.log('Delete all posts request:', {
+      userId: req.user.id,
+      headers: req.headers
+    });
+
     // Find all posts by the current user
     const blogs = await Blog.find({ author: req.user.id });
+    console.log(`Found ${blogs.length} posts to delete for user ${req.user.id}`);
     
     // Delete associated image files
     for (const blog of blogs) {
       if (blog.imageUrl && !blog.imageUrl.includes('default-blog.jpg')) {
         const imagePath = path.join(__dirname, '../public', blog.imageUrl);
         try {
-          require('fs').unlinkSync(imagePath);
+          if (require('fs').existsSync(imagePath)) {
+            require('fs').unlinkSync(imagePath);
+            console.log(`Deleted image file: ${imagePath}`);
+          } else {
+            console.log(`Image file not found: ${imagePath}`);
+          }
         } catch (err) {
           console.error('Error deleting image file:', err);
+          // Continue with deletion even if image deletion fails
         }
       }
     }
 
     // Delete all posts
-    await Blog.deleteMany({ author: req.user.id });
+    const result = await Blog.deleteMany({ author: req.user.id });
+    console.log(`Deleted ${result.deletedCount} posts for user ${req.user.id}`);
     
-    res.json({ message: 'All posts deleted successfully' });
+    res.json({ 
+      message: 'All posts deleted successfully',
+      deletedCount: result.deletedCount
+    });
   } catch (error) {
-    console.error('Error deleting all posts:', error);
-    res.status(500).json({ message: 'Error deleting all posts', error: error.message });
+    console.error('Error deleting all posts:', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user.id
+    });
+    res.status(500).json({ 
+      message: 'Error deleting all posts', 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
