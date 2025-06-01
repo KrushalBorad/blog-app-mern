@@ -107,27 +107,60 @@ router.get('/saved', auth, async (req, res) => {
 // Toggle save post
 router.post('/:id/toggle-save', auth, async (req, res) => {
   try {
+    console.log('Toggle save request:', {
+      postId: req.params.id,
+      userId: req.user.id,
+      headers: req.headers
+    });
+
     const blog = await Blog.findById(req.params.id);
     if (!blog) {
+      console.log('Blog not found:', req.params.id);
       return res.status(404).json({ message: 'Blog not found' });
     }
 
     const userId = req.user.id;
     const savedIndex = blog.savedBy.indexOf(userId);
 
+    console.log('Current save status:', {
+      postId: blog._id,
+      userId,
+      savedIndex,
+      savedBy: blog.savedBy
+    });
+
     // If user already saved, remove save
     if (savedIndex !== -1) {
       blog.savedBy.splice(savedIndex, 1);
+      console.log('Removing save');
     } else {
       // Add save
       blog.savedBy.push(userId);
+      console.log('Adding save');
     }
 
     await blog.save();
-    res.json(blog);
+    console.log('Save status updated:', {
+      postId: blog._id,
+      savedBy: blog.savedBy
+    });
+
+    res.json({
+      message: savedIndex !== -1 ? 'Post unsaved' : 'Post saved',
+      savedBy: blog.savedBy
+    });
   } catch (error) {
-    console.error('Error in toggle save route:', error);
-    res.status(500).json({ message: 'Error updating saved status', error: error.message });
+    console.error('Error in toggle save route:', {
+      error: error.message,
+      stack: error.stack,
+      postId: req.params.id,
+      userId: req.user.id
+    });
+    res.status(500).json({ 
+      message: 'Error updating saved status', 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 

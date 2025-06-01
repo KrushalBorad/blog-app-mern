@@ -272,6 +272,51 @@ export default function Home() {
     }
   };
 
+  const handleSavePost = async (postId: string) => {
+    if (!user) {
+      setError('You must be logged in to save posts');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Authentication token not found');
+        return;
+      }
+
+      console.log('Sending save post request:', {
+        postId,
+        userId: user.id,
+        token: token.substring(0, 20) + '...' // Only log part of the token for security
+      });
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${postId}/toggle-save`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log('Save post response:', response.data);
+
+      // Update the saved posts in the context
+      toggleSavePost(postId);
+    } catch (err) {
+      console.error('Error saving post:', err);
+      if (axios.isAxiosError(err)) {
+        const errorMessage = err.response?.data?.message || err.message;
+        setError(errorMessage);
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to save post');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -449,12 +494,13 @@ export default function Home() {
                     )}
                     {user && (
                       <button
-                        onClick={() => toggleSavePost(post._id)}
+                        onClick={() => handleSavePost(post._id)}
                         className={`flex items-center ${
                           savedPosts.includes(post._id)
                             ? 'text-pink-400 hover:text-pink-300'
                             : 'text-gray-400 hover:text-gray-300'
                         } transition-colors duration-300 text-xs sm:text-sm`}
+                        title={savedPosts.includes(post._id) ? 'Remove from saved' : 'Save post'}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
