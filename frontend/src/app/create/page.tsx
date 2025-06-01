@@ -11,8 +11,9 @@ export default function CreatePost() {
   const [content, setContent] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
   
   const router = useRouter();
   const { isAuthenticated, loading: authLoading } = useAuth();
@@ -29,15 +30,12 @@ export default function CreatePost() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    setError('');
 
     try {
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('content', content);
-      if (image) {
-        formData.append('image', image);
+      if (!isAuthenticated) {
+        throw new Error('You must be logged in to create a post');
       }
 
       const token = localStorage.getItem('token');
@@ -45,20 +43,51 @@ export default function CreatePost() {
         throw new Error('Authentication token not found');
       }
 
-      const response = await axios.post('/api/blogs', formData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
+      // Create FormData object
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('content', content);
+      if (image) {
+        formData.append('image', image);
+      }
+
+      console.log('Sending create post request:', {
+        title,
+        content,
+        hasImage: !!image,
+        token: token.substring(0, 20) + '...' // Only log part of the token for security
       });
 
-      router.push(`/blog/${response.data._id}`);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/blogs`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      console.log('Create post response:', response.data);
+
+      // Clear form
+      setTitle('');
+      setContent('');
+      setImage(null);
+
+      // Show success message
+      setSuccess('Post created successfully!');
+      setTimeout(() => {
+        router.push('/');
+      }, 2000);
     } catch (err) {
       console.error('Error creating post:', err);
       if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || 'Failed to create post. Please try again.');
+        const errorMessage = err.response?.data?.message || err.message;
+        setError(errorMessage);
       } else {
-        setError('Failed to create post. Please try again.');
+        setError(err instanceof Error ? err.message : 'Failed to create post');
       }
     } finally {
       setLoading(false);
@@ -121,6 +150,10 @@ export default function CreatePost() {
 
             {error && (
               <div className="text-red-400 text-sm">{error}</div>
+            )}
+
+            {success && (
+              <div className="text-green-400 text-sm">{success}</div>
             )}
 
             <div className="flex justify-end">

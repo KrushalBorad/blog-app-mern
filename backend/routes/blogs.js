@@ -12,31 +12,21 @@ router.post('/', auth, upload, async (req, res) => {
       body: req.body,
       file: req.file,
       user: req.user,
-      headers: req.headers,
-      rawBody: req.rawBody
+      headers: req.headers
     });
-
-    // Log the raw request body
-    console.log('Raw request body:', req.body);
-    console.log('Request headers:', req.headers);
-    console.log('Request file:', req.file);
-    console.log('Request user:', req.user);
 
     // Validate required fields
     if (!req.body.title || !req.body.content) {
       console.log('Missing required fields:', { 
         title: req.body.title, 
         content: req.body.content,
-        body: req.body,
-        bodyType: typeof req.body,
-        bodyKeys: Object.keys(req.body)
+        body: req.body
       });
       return res.status(400).json({ 
         message: 'Title and content are required',
         received: {
           title: req.body.title,
-          content: req.body.content,
-          body: req.body
+          content: req.body.content
         }
       });
     }
@@ -66,7 +56,13 @@ router.post('/', auth, upload, async (req, res) => {
     const populatedBlog = await Blog.findById(savedBlog._id).populate('author', 'name email');
     res.status(201).json(populatedBlog);
   } catch (error) {
-    console.error('Error creating blog:', error);
+    console.error('Error creating blog:', {
+      error: error.message,
+      stack: error.stack,
+      body: req.body,
+      user: req.user
+    });
+    
     if (error.name === 'ValidationError') {
       return res.status(400).json({ 
         message: 'Validation error', 
@@ -74,10 +70,11 @@ router.post('/', auth, upload, async (req, res) => {
         error: error
       });
     }
+    
     res.status(500).json({ 
       message: 'Error creating blog post', 
       error: error.message,
-      stack: error.stack
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
