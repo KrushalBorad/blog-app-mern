@@ -1,5 +1,5 @@
 import AnimatedBackground from '@/components/AnimatedBackground'
-import Navbar from '@/components/Navbar'
+import Navigation from '@/components/Navigation'
 import { AuthProvider } from '@/context/AuthContext'
 import { Inter } from 'next/font/google'
 import './globals.css'
@@ -21,8 +21,8 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <AnimatedBackground />
-          <Navbar />
-          <main className="relative">
+          <Navigation />
+          <main className="relative pt-16">
             {children}
           </main>
         </AuthProvider>

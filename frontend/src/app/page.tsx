@@ -289,35 +289,37 @@ export default function Home() {
   return (
     <div className="min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between items-center mb-12">
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-12">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
             Blog Posts
           </h1>
-          {user && (
-            <Link
-              href="/create"
-              className="bg-purple-900/50 hover:bg-purple-800/60 text-purple-300 px-6 py-3 rounded-lg font-semibold 
-                transform hover:scale-105 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]
-                flex items-center gap-2"
-            >
-              <span>Create Post</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-              </svg>
-            </Link>
-          )}
-          {user && (
-            <button
-              onClick={handleDeleteAll}
-              className="flex items-center text-red-400 hover:text-red-300 transition-colors duration-300 text-sm"
-              title="Delete all your posts"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              Delete All Posts
-            </button>
-          )}
+          <div className="flex items-center gap-4">
+            {user && (
+              <Link
+                href="/create"
+                className="bg-purple-900/50 hover:bg-purple-800/60 text-purple-300 px-6 py-3 rounded-lg font-semibold 
+                  transform hover:scale-105 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]
+                  flex items-center gap-2"
+              >
+                <span>Create Post</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                </svg>
+              </Link>
+            )}
+            {user && (
+              <button
+                onClick={handleDeleteAll}
+                className="flex items-center text-red-400 hover:text-red-300 transition-colors duration-300 text-sm bg-red-900/20 px-4 py-2 rounded-lg"
+                title="Delete all your posts"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                Delete All Posts
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

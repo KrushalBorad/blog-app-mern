@@ -12,7 +12,7 @@ export default function Navigation() {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  // Function to generate profile color based on name (matching the one from page.tsx)
+  // Function to generate profile color based on name
   const getProfileColor = (name: string) => {
     const colors = [
       'from-blue-500 to-purple-500',
@@ -27,7 +27,7 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg">
+    <nav className="bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg fixed w-full z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link 
