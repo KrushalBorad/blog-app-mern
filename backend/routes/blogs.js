@@ -94,13 +94,25 @@ router.get('/', async (req, res) => {
 // Get saved posts for the current user
 router.get('/saved', auth, async (req, res) => {
   try {
+    console.log('Fetching saved posts for user:', req.user.id);
+    
     const blogs = await Blog.find({ savedBy: req.user.id })
       .populate('author', 'name email')
       .sort({ createdAt: -1 });
+    
+    console.log(`Found ${blogs.length} saved posts for user ${req.user.id}`);
     res.json(blogs);
   } catch (error) {
-    console.error('Error fetching saved posts:', error);
-    res.status(500).json({ message: 'Error fetching saved posts', error: error.message });
+    console.error('Error fetching saved posts:', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user.id
+    });
+    res.status(500).json({ 
+      message: 'Error fetching saved posts', 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
@@ -145,9 +157,12 @@ router.post('/:id/toggle-save', auth, async (req, res) => {
       savedBy: blog.savedBy
     });
 
+    // Populate author details before sending response
+    const populatedBlog = await Blog.findById(blog._id).populate('author', 'name email');
     res.json({
       message: savedIndex !== -1 ? 'Post unsaved' : 'Post saved',
-      savedBy: blog.savedBy
+      savedBy: populatedBlog.savedBy,
+      blog: populatedBlog
     });
   } catch (error) {
     console.error('Error in toggle save route:', {
