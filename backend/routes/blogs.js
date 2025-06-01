@@ -12,21 +12,31 @@ router.post('/', auth, upload, async (req, res) => {
       body: req.body,
       file: req.file,
       user: req.user,
-      headers: req.headers
+      headers: req.headers,
+      rawBody: req.rawBody
     });
+
+    // Log the raw request body
+    console.log('Raw request body:', req.body);
+    console.log('Request headers:', req.headers);
+    console.log('Request file:', req.file);
+    console.log('Request user:', req.user);
 
     // Validate required fields
     if (!req.body.title || !req.body.content) {
       console.log('Missing required fields:', { 
         title: req.body.title, 
         content: req.body.content,
-        body: req.body
+        body: req.body,
+        bodyType: typeof req.body,
+        bodyKeys: Object.keys(req.body)
       });
       return res.status(400).json({ 
         message: 'Title and content are required',
         received: {
           title: req.body.title,
-          content: req.body.content
+          content: req.body.content,
+          body: req.body
         }
       });
     }
@@ -60,12 +70,14 @@ router.post('/', auth, upload, async (req, res) => {
     if (error.name === 'ValidationError') {
       return res.status(400).json({ 
         message: 'Validation error', 
-        details: error.message 
+        details: error.message,
+        error: error
       });
     }
     res.status(500).json({ 
       message: 'Error creating blog post', 
-      error: error.message 
+      error: error.message,
+      stack: error.stack
     });
   }
 });
