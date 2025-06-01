@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -13,19 +14,20 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Serve static files from the uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
-app.use('/images', express.static(path.join(__dirname, 'public/images')));
-
 // Create required directories if they don't exist
 const uploadsDir = path.join(__dirname, 'public/uploads');
 const imagesDir = path.join(__dirname, 'public/images');
-if (!require('fs').existsSync(uploadsDir)) {
-    require('fs').mkdirSync(uploadsDir, { recursive: true });
+
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
 }
-if (!require('fs').existsSync(imagesDir)) {
-    require('fs').mkdirSync(imagesDir, { recursive: true });
+if (!fs.existsSync(imagesDir)) {
+    fs.mkdirSync(imagesDir, { recursive: true });
 }
+
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
